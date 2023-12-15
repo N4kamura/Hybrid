@@ -15,7 +15,9 @@ from collections import Counter
 import shutil
 from io import StringIO
 import xml.etree.ElementTree as ET
+import warnings
 
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 nombres_vehiculos = []
 enviado_contador = 1
 
@@ -804,7 +806,10 @@ class MiVentana(QMainWindow):
     def export_params_2_excel(self):
         global param_groups
         original_path = "./images/Parametros_Model.xlsx"
-        directorio,_ = os.path.split(self.path_file)
+        try:
+            directorio,_ = os.path.split(self.path_file)
+        except AttributeError:
+            return print("Debes seleccionar la ubicación del archivo Vissim para que se guarde allí la excel.")
         modelo = os.path.join(directorio,'Parametros_Calibracion.xlsx')
 
         shutil.copy2(original_path,modelo)
