@@ -219,6 +219,7 @@ class MiVentana(QMainWindow):
     def data_campo(self):
         global nombres_vehiculos
 
+        #Checking buttons:
         while not (
             self.early.isChecked() or
             self.morning.isChecked() or
@@ -235,12 +236,7 @@ class MiVentana(QMainWindow):
             turno = 2
         elif self.night.isChecked():
             turno = 3
-        
-        ###############
-        # Excel Paths #
-        ###############
-        #path_vissim = os.path.join(self.path_file,self.inpx_name)
-        #tree = ET.parse(path_vissim)
+
         tree = ET.parse(self.path_file)
         network_tag = tree.getroot()
 
@@ -253,8 +249,6 @@ class MiVentana(QMainWindow):
             uda_element = node_tag.find(f"./uda[@key='{key}']")
             codigo_intersection = uda_element.get("value")
             nodes_info.append((number_node,codigo_intersection))
-
-        #nodes_info = [[('1', 'SS-88'), ('2', 'SS-25')]]
 
         nombre_subarea = self.path_file
         for _ in range(4):
@@ -289,6 +283,8 @@ class MiVentana(QMainWindow):
 
         start_time = time.perf_counter()
         print("Calculando Hora Pico")
+
+        # Finding Peak Hour
 
         resultados_peakhour = []
 
@@ -336,6 +332,8 @@ class MiVentana(QMainWindow):
         minutes = int(((horas_puntas[0][1]/4)%1)*100*0.15/0.25)
         print(f'PEAK HOUR DEFINITIVE: {hours-1:02d}:{minutes:02d} - {hours:02d}:{minutes:02d}')
 
+        #Reading Excels:
+
         start_time = time.perf_counter()
         print("Leyendo datos de volúmenes por cada excel")
         with concurrent.futures.ProcessPoolExecutor(
@@ -347,7 +345,7 @@ class MiVentana(QMainWindow):
                     excel_path
                     for excel_path in excel_paths
                 ],
-                [10]*len(excel_paths), #Aquí yo he colocado 10 de manera general
+                [10]*len(excel_paths), #Aquí yo he colocado 10 de manera general TODO: <----------------------
                 [slice(horas_puntas[0][0],horas_puntas[0][1])]*len(excel_paths),
             )
         end_time = time.perf_counter()
@@ -355,7 +353,7 @@ class MiVentana(QMainWindow):
 
         data_excel = list(data_excel)
 
-        #Obtención de Tipos vehiculares
+        #Obtaining vehicle types:
         print("DATOS DE TIPOS VEHICULARES")
         wb = load_workbook(excel_paths[0],read_only=True,data_only=True)
         ws_ma=wb['V_Ma']
@@ -379,13 +377,26 @@ class MiVentana(QMainWindow):
 
         numero_total = len(data_excel)*len(data_excel[0])*len(data_excel[0][0][2])*len(data_excel[0][0][1])
 
-        wb = xw.Book(modelo)
-        sheet = wb.sheets['GEH']
+        #----------------------------------------------------------------------------#
+        # Writing field data in GEH #
+        #----------------------------------------------------------------------------#
+
+        wb = load_workbook(modelo,read_only=False,data_only=False,keep_vba=True)
+        ws = wb['GEH']
         all_values = []
         insercion_data_inicio = time.perf_counter()
+
         for i in range(len(types)):
+            ws[vehicles_names].value = types[i]
+            vehicles_names = vehicles_names[0] + str(9+i)
+
+        """ wb = xw.Book(modelo)
+        sheet = wb.sheets['GEH']
+        all_values = [] """
+
+        """ for i in range(len(types)):
             sheet.range(vehicles_names).value = types[i]
-            vehicles_names=vehicles_names[0]+str(9+i)
+            vehicles_names=vehicles_names[0]+str(9+i) """
 
         for l in range(len(data_excel[0][0][2])): #Aquí estan 10 tipos de vehiculos
             for i in range(len(data_excel)): #Son 3: Número de excels
@@ -394,6 +405,17 @@ class MiVentana(QMainWindow):
                         all_values.append([data_excel[i][j][0],data_excel[i][j][1][k],types[l],data_excel[i][j][2][l][k]])
 
         for index in range(numero_total):
+            ws[intersection].value = all_values[index][0][7:]
+            ws[od].value = all_values[index][1]
+            ws[vehicle_type].value = all_values[index][2]
+            ws[volumes].value = all_values[index][3]
+
+            intersection    = intersection[0]   + str(9+index)
+            od              = od[0]             + str(9+index)
+            vehicle_type    = vehicle_type[0]   + str(9+index)
+            volumes         = volumes[0]        + str(9+index)
+
+        """ for index in range(numero_total):
             sheet.range(intersection).value=all_values[index][0][7:]
             sheet.range(od).value=all_values[index][1]
             sheet.range(vehicle_type).value=all_values[index][2]
@@ -401,21 +423,22 @@ class MiVentana(QMainWindow):
             intersection=intersection[0]+str(9+index)
             od=od[0]+str(9+index)
             vehicle_type=vehicle_type[0]+str(9+index)
-            volumes=volumes[0]+str(9+index)
+            volumes=volumes[0]+str(9+index) """
         
-        wb.save()
-        wb.app.quit()
+        wb.save(modelo)
+        wb.close()
+        #wb.app.quit()
         insercion_data_fin = time.perf_counter()
 
         print(f"Tiempo de escritura en excel = {insercion_data_fin-insercion_data_inicio:.02f} segundos.")
-        #Podría colocar un return que modifique un label acá.
+        print("Proceso terminado.")
 
     def reporte(self):
         global nombres_vehiculos
 
-        ##############################
-        # OBTENCIÓN DE DATA SIMULADA #
-        ##############################
+        #---------------------------------------------#
+        # Obtaining simulated data #
+        #---------------------------------------------#
         inicio_reading = time.perf_counter()
         directorio = os.path.dirname(self.path_file)
         patron = re.compile(r'_Node Results_\d{3}.att') #Busca todos los archivos que acaban en 3 dígitos y se filtra el mayor. Aggregated data need to be activated.
@@ -426,11 +449,13 @@ class MiVentana(QMainWindow):
 
         path = os.path.join(directorio,archivo_mas_alto)
 
-        #LECTURA DE LA DATA SIMULADA
+        #---------------------------------------------#
+        # Reading result attribute data #
+        #---------------------------------------------#
+
         with open(path,'r') as att_file:
             contador = 0
             data = []
-
             for line in att_file:
                 line = line.strip()
 
@@ -440,57 +465,65 @@ class MiVentana(QMainWindow):
                 if contador == 2:
                     data.append(line)
 
+        #---------------------------------------------#
+        # Obtaining dataframe from the data #
+        #---------------------------------------------#
+                    
         data = data[:-1]
         data_str = '\n'.join(data)
         data_io = StringIO(data_str)
         df = pd.read_csv(data_io,delimiter=';')
 
-        #Tramiento del DataFrame
+        #---------------------------------------------#
+        # Cleaning and filtering data #
+        #---------------------------------------------#
         df = df.dropna(subset=['MOVEMENT\FROMLINK\ORIGEN','MOVEMENT\TOLINK\DESTINO'])
         df = df.reset_index(drop=True)
         df = df.loc[df.iloc[:,0] == 'AVG']
         df = df.reset_index(drop=True)
 
-        final_reading=time.perf_counter()
-
+        final_reading = time.perf_counter()
         print(f"Tiempo de lectura de resultados = {final_reading-inicio_reading:.2f} segundos.")
 
-        #####################################
-        # ESCRITURA DE INFORMACIÓN EN EXCEL #
-        #####################################
+        #---------------------------------------------#
+        # Writing results #
+        #---------------------------------------------#
 
-        inicio_writing=time.perf_counter()
-
-        directorio,_ = os.path.split(self.path_file)
+        inicio_writing = time.perf_counter()
+        directorio, _ = os.path.split(self.path_file)
         modelo = os.path.join(directorio,'Reporte_GEH-R2.xlsm')
 
-        wb = xw.Book(modelo)
-        sheet = wb.sheets['GEH']
-
+        wb = load_workbook(modelo,read_only=False,data_only=False,keep_vba=True)
+        ws = wb['GEH']
+        
         intersection    = 'K8'
         origin          = 'L8'
         destiny         = 'M8'
         vehicle_type    = ['BC8','BD8','BE8','BF8','BG8','BH8','BI8','BJ8','BK8','BL8','BM8','BN8','BO8','BP8','BQ8','BR8','BS8','BT8','BU8','BV8']
 
-        for index,row in df.iterrows():
-            #Escritura
-            sheet.range(intersection).value = row.iloc[2]
-            sheet.range(origin).value = row.iloc[3]
-            sheet.range(destiny).value = row.iloc[4]
-            #Actualización de índices en el excel
-            intersection=intersection[0]+str(9+index)
-            origin=origin[0]+str(9+index)
-            destiny=destiny[0]+str(9+index)
-            #Impresión de data pura y dura
-            for i in range(len(row[5:])):
-                sheet.range(vehicle_type[i]).value=row.iloc[i+5]
-            for j in range(len(vehicle_type)):
-                vehicle_type[j]=vehicle_type[j][:2]+str(int(vehicle_type[j][2:])+1)
+        for index, row in df.iterrows():
+            #Writing:
+            ws[intersection].value  = row.iloc[2]
+            ws[origin].value        = row.iloc[3]
+            ws[destiny].value       = row.iloc[4]
 
-        wb.save()
-        
+            intersection    = intersection[0]   + str(9+index)
+            origin          = origin[0]         + str(9+index)
+            destiny         = destiny[0]        + str(9+index) 
+
+            for i in range(len(row[5:])):
+                ws[vehicle_type[i]].value = row.iloc[i+5]
+
+            for j in range(len(vehicle_type)):
+                vehicle_type[j] = vehicle_type[j][:2] + str(int(vehicle_type[j][2:])+1)
+
+        wb.save(modelo)
+        wb.close()
+
+        os.startfile(modelo)
+
         final_writing = time.perf_counter()
-        print(f"Tiempo de escritura en excel = {inicio_writing-final_writing:.2f} segundos.")
+        print(f"Tiempo de escritura en excel = {final_writing-inicio_writing:.2f} segundos.")
 
     def livianos(self):
         self.LookAheadDistMin.setText("0")
