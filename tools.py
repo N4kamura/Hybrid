@@ -48,10 +48,10 @@ def read_one_excel(excel_path,num_veh_classes,interval):
     num_giros = [
         [row[0].value for row in ws_inicio[s]].index(None)
         for s in [
-            slice("G21", "G30"),
-            slice("M21", "M30"),
-            slice("G33", "G42"),
-            slice("M33", "M42"),
+            slice("G12", "G21"),
+            slice("M12", "M21"),
+            slice("G24", "G33"),
+            slice("M24", "M33"),
         ]    
     ]
 
@@ -61,17 +61,17 @@ def read_one_excel(excel_path,num_veh_classes,interval):
     list_origin      = []
 
     list_slice_destination = (
-        slice("F21", "F30"),
-        slice("L21", "L30"),
-        slice("F33", "F42"),
-        slice("L33", "L42"),
+        slice("F12", "F21"),
+        slice("L12", "L21"),
+        slice("F24", "F33"),
+        slice("L24", "L33"),
     )
 
     list_slice_origin = (
-        slice("E21", "E30"),
-        slice("K21", "K30"),
-        slice("E33", "E42"),
-        slice("K33", "K42"),
+        slice("E12", "E21"),
+        slice("K12", "K21"),
+        slice("E24", "E33"),
+        slice("K24", "K33"),
     )
     final_result=[]
     for i_giro in range(4):
@@ -105,5 +105,7 @@ def read_one_excel(excel_path,num_veh_classes,interval):
         
         _, name_excel = os.path.split(excel_path)
         final_result.append([name_excel[:-5],list_od,list_sumas])
+    
+    wb.close()
 
     return final_result

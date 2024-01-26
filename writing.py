@@ -30,7 +30,7 @@ def writing_campo(vissim_path, turno) -> None:
     _,nombre_subarea = os.path.split(nombre_subarea)
 
     tipicidad = vissim_path
-    for _ in range(3):
+    for _ in range(2):
         tipicidad = os.path.dirname(tipicidad)
     _,tipicidad = os.path.split(tipicidad)
 
@@ -46,7 +46,7 @@ def writing_campo(vissim_path, turno) -> None:
 
     for node_info in nodes_info:
         for file in files:
-            if file[:5] == node_info[1]:
+            if file[:5] == node_info[1]: #TODO: <------ Se puede mejorar solo captando patrones.
                 flujogramas_ordered.append(file)
                 break
 
@@ -54,7 +54,6 @@ def writing_campo(vissim_path, turno) -> None:
     for flujograma in flujogramas_ordered:
         flujograma = os.path.join(directorio_flujogramas,flujograma)
         excel_paths.append(flujograma)
-
     start_time = time.perf_counter()
     print("Calculando Hora Pico")
 
@@ -119,7 +118,7 @@ def writing_campo(vissim_path, turno) -> None:
                 excel_path
                 for excel_path in excel_paths
             ],
-            [10]*len(excel_paths), #Aquí yo he colocado 10 de manera general TODO: <----------------------
+            [11]*len(excel_paths), #Aquí yo he colocado 10 de manera general TODO: <----------------------
             [slice(horas_puntas[0][0],horas_puntas[0][1])]*len(excel_paths),
         )
     end_time = time.perf_counter()
@@ -167,6 +166,9 @@ def writing_campo(vissim_path, turno) -> None:
             for j in range(len(data_excel[i])): #Son 4: N, S, E, O
                 for k in range(len(data_excel[i][j][1])): #Aquí es por número de giros (en este caso 3)
                     all_values.append([data_excel[i][j][0],data_excel[i][j][1][k],types[l],data_excel[i][j][2][l][k]])
+
+    print(len(all_values))
+    print(numero_total)
 
     for index in range(numero_total):
         ws[intersection].value = all_values[index][0][7:]

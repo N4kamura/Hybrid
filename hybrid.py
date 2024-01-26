@@ -117,7 +117,7 @@ class MiVentana(QMainWindow):
         elif self.night.isChecked():
             turno = 3
 
-        writing_campo(self.path_file, turno, nombres_vehiculos)
+        writing_campo(self.path_file, turno)
 
         print("Proceso terminado.")
 
