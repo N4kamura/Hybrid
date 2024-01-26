@@ -125,6 +125,8 @@ def writing_campo(vissim_path, turno) -> None:
     print(f'Tiempo usado en la lectura de excels: {end_time-start_time:.2f} segundos')
 
     data_excel = list(data_excel)
+    """data_excel
+    [excel_name, [turns], [volumes per turn and per type]] <- Access (N,S,E,O)"""
 
     #Obtaining vehicle types:
     print("Reading Vehicle Types")
@@ -146,7 +148,7 @@ def writing_campo(vissim_path, turno) -> None:
     vehicle_type = 'D8'
     volumes = 'E8'
 
-    numero_total = len(data_excel)*len(data_excel[0])*len(data_excel[0][0][2])*len(data_excel[0][0][1])
+    #numero_total = len(data_excel)*len(data_excel[0])*len(data_excel[0][0][2])*len(data_excel[0][0][1])
 
     #----------------------------------------------------------------------------#
     # Writing field data in GEH #
@@ -161,16 +163,21 @@ def writing_campo(vissim_path, turno) -> None:
         ws[vehicles_names].value = types[i]
         vehicles_names = vehicles_names[0] + str(9+i)
 
-    for l in range(len(data_excel[0][0][2])): #Aquí estan 10 tipos de vehiculos
+    for excel in data_excel:
+        for access in excel:
+            for i, turns in enumerate(access[1]):
+                for j, volume in enumerate(access[2]):
+                    all_values.append([access[0], turns, types[j], volume[i]])
+
+    """ for l in range(len(data_excel[0][0][2])): #Aquí estan 10 tipos de vehiculos
         for i in range(len(data_excel)): #Son 3: Número de excels
             for j in range(len(data_excel[i])): #Son 4: N, S, E, O
                 for k in range(len(data_excel[i][j][1])): #Aquí es por número de giros (en este caso 3)
                     all_values.append([data_excel[i][j][0],data_excel[i][j][1][k],types[l],data_excel[i][j][2][l][k]])
+    """
 
-    print(len(all_values))
-    print(numero_total)
-
-    for index in range(numero_total):
+    #for index in range(numero_total):
+    for index in range(len(all_values)):
         ws[intersection].value = all_values[index][0][7:]
         ws[od].value = all_values[index][1]
         ws[vehicle_type].value = all_values[index][2]
