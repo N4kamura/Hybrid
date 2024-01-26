@@ -79,6 +79,7 @@ class MiVentana(QMainWindow):
         self.carga.clicked.connect(self.cargas)
         self.fijar.clicked.connect(self.fijars)
         self.exportar.clicked.connect(self.export_params_2_excel)
+        self.get_pushButton.clicked.connect(self.get)
         
         #BOTONES PARA LOS TURNOS
         button_group = QButtonGroup(self)
@@ -234,6 +235,64 @@ class MiVentana(QMainWindow):
         self.LatDistStandDef.setText    (str(ws.cell(38,13).value))
         self.LatDistDrivDef.setText     (str(ws.cell(39,13).value))
         wb.close()
+
+    def get(self):
+        self.version10=self.checkBox.isChecked()
+        self.version23=self.checkBox_2.isChecked()
+        #INICIO DE COM
+        if self.version10:
+            vissim = com.Dispatch('Vissim.Vissim.10')
+        elif self.version23:
+            vissim = com.Dispatch('Vissim.Vissim.23')
+    
+        key = int(self.vehicle_type.text())
+        self.LookAheadDistMin.setText       (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LookAheadDistMin')))
+        self.LookAheadDistMax.setText       (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LookAheadDistMax')))
+        self.LookBackDistMin.setText        (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LookBackDistMin')))
+        self.LookBackDistMax.setText        (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LookBackDistMax')))
+        self.W74ax.setText                  (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('W74ax')))
+        self.W74bxAdd.setText               (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('W74bxAdd')))
+        self.W74bxMult.setText              (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('W74bxMult')))
+        self.MaxDecelOwn.setText            (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('MaxDecelOwn')))
+        self.MaxDecelTrail.setText          (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('MaxDecelTrail')))
+        self.DecelRedDistOwn.setText        (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('DecelRedDistOwn')))
+        self.DecelRedDistTrail.setText      (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('DecelRedDistTrail')))
+        self.AccDecelOwn.setText            (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('AccDecelOwn')))
+        self.AccDecelTrail.setText          (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('AccDecelTrail')))
+        self.DiffusTm.setText               (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('DiffusTm')))
+        self.SafDistFactLnChg.setText       (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('SafDistFactLnChg')))
+        self.CoopDecel.setText              (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('CoopDecel')))
+        self.MinCollTmGain.setText          (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('MinCollTmGain')))
+        self.MinSpeedForLat.setText         (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('MinSpeedForLat')))
+        self.LatDistStandDef.setText        (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LatDistStandDef')))
+        self.LatDistDrivDef.setText         (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LatDistDrivDef')))
+
+        #PRUEBAS
+        DesLatPos_ui = vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('DesLatPos')
+        if DesLatPos_ui == 'MIDDLE':
+            self.DesLatPos.setCurrentIndex(0)
+        elif DesLatPos_ui == 'ANY':
+            self.DesLatPos.setCurrentIndex(1)
+        elif DesLatPos_ui == 'RIGHT':
+            self.DesLatPos.setCurrentIndex(2)
+        elif DesLatPos_ui == 'LEFT':
+            self.DesLatPos.setCurrentIndex(3)
+
+        if vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('ObsrvAdjLn') == 0:
+            self.ObsrvAdjLn.setChecked(False)
+        else: self.ObsrvAdjLn.setChecked(True)
+        if vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('DiamQueu') == 0:
+            self.DiamQueu.setChecked(False)
+        else: self.DiamQueu.setChecked(True)
+        if vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('ConsNextTurn') == 0:
+            self.ConsNextTurn.setChecked(False)
+        else: self.ConsNextTurn.setChecked(True)
+        if vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('OvtLDef') == 0:
+            self.OvtLDef.setChecked(False)
+        else: self.OvtLDef.setChecked(True)
+        if vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('OvtRDef') == 0:
+            self.OvtRDef.setChecked(False)
+        else: self.OvtRDef.setChecked(True)        
 
     def data_input(self):
         self.version10=self.checkBox.isChecked()
