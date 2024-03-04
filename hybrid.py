@@ -1,5 +1,5 @@
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow,QLabel,QFileDialog,QButtonGroup
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QFileDialog, QButtonGroup, QErrorMessage
 from PyQt5.QtGui import QPixmap
 import win32com.client as com
 import os
@@ -46,12 +46,14 @@ class MiVentana(QMainWindow):
         self.ICoopDecel=["CoopDecel"]
 
         ####LATERAL####
-        self.IDesLatPos=["DesLatPos"] #NEW
-        self.IObsrvAdjLn=["ObsrvAdjLn"] #NEW
-        self.IDiamQueu=["DiamQueu"] #NEW
-        self.IConsNextTurn=["ConsNextTurn"] #NEW
-        self.IOvtLDef=["OvtLDef"] #NEW
-        self.IOvtRDef=["OvtRDef"] #NEW
+        self.IDesLatPos=["DesLatPos"]
+        self.IObsrvAdjLn=["ObsrvAdjLn"]
+        self.IDiamQueu=["DiamQueu"]
+        self.IConsNextTurn=["ConsNextTurn"]
+        self.IOvtLDef=["OvtLDef"]
+        self.IOvtRDef=["OvtRDef"]
+        self.IZipper=["Zipper"] #NEW
+        self.IZipperMinSpeed=["ZipperMinSpeed"] #NEW
         self.IMinCollTmGain=["MinCollTmGain"]
         self.IMinSpeedForLat=["MinSpeedForLat"]
         self.ILatDistStandDef=["LatDistStandDef"]
@@ -93,6 +95,7 @@ class MiVentana(QMainWindow):
         button_group_2 = QButtonGroup(self)
         button_group_2.addButton(self.checkBox)
         button_group_2.addButton(self.checkBox_2)
+        button_group_2.addButton(self.checkBox_3)
 
     def carpeta(self): #Carpeta que contiene el archivo .inpx
         self.path_file,self.inpx_name = QFileDialog.getOpenFileName(self,"Seleccionar Archivo .inpx","c:\\","Archivos .inpx (*.inpx)")
@@ -238,12 +241,12 @@ class MiVentana(QMainWindow):
 
     def get(self):
         self.version10=self.checkBox.isChecked()
-        self.version23=self.checkBox_2.isChecked()
+        self.version24=self.checkBox_2.isChecked()
         #INICIO DE COM
         if self.version10:
             vissim = com.Dispatch('Vissim.Vissim.10')
-        elif self.version23:
-            vissim = com.Dispatch('Vissim.Vissim.23')
+        elif self.version24:
+            vissim = com.Dispatch('Vissim.Vissim.24')
     
         key = int(self.vehicle_type.text())
         self.LookAheadDistMin.setText       (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LookAheadDistMin')))
@@ -267,7 +270,6 @@ class MiVentana(QMainWindow):
         self.LatDistStandDef.setText        (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LatDistStandDef')))
         self.LatDistDrivDef.setText         (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LatDistDrivDef')))
 
-        #PRUEBAS
         DesLatPos_ui = vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('DesLatPos')
         if DesLatPos_ui == 'MIDDLE':
             self.DesLatPos.setCurrentIndex(0)
@@ -295,8 +297,8 @@ class MiVentana(QMainWindow):
         else: self.OvtRDef.setChecked(True)        
 
     def data_input(self):
-        self.version10=self.checkBox.isChecked()
-        self.version23=self.checkBox_2.isChecked()
+        self.version10      =self.checkBox.isChecked()
+        self.version24      =self.checkBox_2.isChecked()
         self.Ivehicle_type.append         (self.vehicle_type.text()) #Nro. de Driving Behavior
 
         self.ILookAheadDistMin.append     (self.LookAheadDistMin.text())
@@ -338,6 +340,11 @@ class MiVentana(QMainWindow):
         if self.OvtRDef.isChecked(): self.IOvtRDef.append("true")
         else: self.IOvtRDef.append("false")
 
+        if self.version24:
+            if self.checkBox_3.isChecked():
+                self.IZipper.append("true")
+                self.IZipperMinSpeed.append(self.ZipperMinSpeed.text())
+
         #CHECK
         #self.enviado.setText(f"SAVED: {self.vehicle_type.text()}")
 
@@ -372,7 +379,7 @@ class MiVentana(QMainWindow):
         LatDistStandDef     =self.ILatDistStandDef
         LatDistDrivDef      =self.ILatDistDrivDef
 
-        ####NEWS####
+        ####ACCESORIES####
         DesLatPos           =self.IDesLatPos
         ObsrvAdjLn          =self.IObsrvAdjLn
         DiamQueu            =self.IDiamQueu
@@ -380,11 +387,16 @@ class MiVentana(QMainWindow):
         OvtLDef             =self.IOvtLDef
         OvtRDef             =self.IOvtRDef
 
+        ####NEWS####
+        if self.version24:
+            Zipper              = self.IZipper
+            ZipperMinSpeed      = self.IZipperMinSpeed
+
         #INICIO DE COM
         if self.version10:
             vissim = com.Dispatch('Vissim.Vissim.10')
-        elif self.version23:
-            vissim = com.Dispatch('Vissim.Vissim.23')
+        elif self.version24:
+            vissim = com.Dispatch('Vissim.Vissim.24')
         
         #try:
         #    vissim = com.GetObject(Class="Vissim.Vissim.10")
@@ -427,6 +439,11 @@ class MiVentana(QMainWindow):
         vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(ConsNextTurn[0],ConsNextTurn[1])
         vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(OvtLDef[0],OvtLDef[1])
         vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(OvtRDef[0],OvtRDef[1])
+        #ZIPPER:
+        if self.version24:
+            if self.checkBox_3.isChecked():
+                vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(Zipper[0],Zipper[1])
+                vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(ZipperMinSpeed[0],ZipperMinSpeed[1])
 
         #CHECK
         self.enviado.setText(f"ENVIADO {enviado_contador}")
@@ -474,8 +491,10 @@ class MiVentana(QMainWindow):
         self.IConsNextTurn=["ConsNextTurn"]
         self.IOvtLDef=["OvtLDef"]
         self.IOvtRDef=["OvtRDef"]
-        
-        #Play Simulation after have changed attributes
+
+        #ZIPPER
+        self.IZipper=["Zipper"]
+        self.IZipperMinSpeed=["ZipperMinSpeed"]
 
         print("Cambios de parámetros exitoso")
 

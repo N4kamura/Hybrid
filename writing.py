@@ -37,7 +37,7 @@ def writing_campo(vissim_path, turno) -> None:
     directorio_proyecto = vissim_path
     for _ in range(6):
         directorio_proyecto = os.path.dirname(directorio_proyecto)
-    
+
     directorio_flujogramas = os.path.join(directorio_proyecto,f"7. Informacion de Campo\\{nombre_subarea}\\Vehicular\\{tipicidad}")
 
     files = os.listdir(directorio_flujogramas)
@@ -219,11 +219,10 @@ def writing_model(vissim_path) -> None:
         data = []
         for line in att_file:
             line = line.strip()
-
             if line.startswith('$') and contador<3:
                 contador += 1
 
-            if contador == 2:
+            if contador == 1: #<------- PARECE QUE EN EL 24 SE GENERA UN POCO MAL Y SOLO SE GENERA UN $ A PESAR QUE SALEN DOS.
                 data.append(line)
 
     #---------------------------------------------#
@@ -231,6 +230,7 @@ def writing_model(vissim_path) -> None:
     #---------------------------------------------#
                 
     data = data[:-1]
+    print(data)
     data_str = '\n'.join(data)
     data_io = StringIO(data_str)
     df = pd.read_csv(data_io,delimiter=';')

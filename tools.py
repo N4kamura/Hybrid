@@ -104,7 +104,21 @@ def read_one_excel(excel_path,num_veh_classes,interval):
             list_sumas.append([sum(mat[:,i]) for i in range(num_giro_i)]) #Saldría la suma de todos los giros en una lista y todo esto por cada tipo vehicular.
         
         _, name_excel = os.path.split(excel_path)
-        final_result.append([name_excel[:-5],list_od,list_sumas])
+        pattern1 = r"([A-Z]+(0-9)+)"
+        pattern2 = r"([A-Z]+-[0-9]+)"
+        coincidence1 = re.search(pattern1, name_excel)
+        coincidence2 = re.search(pattern2, name_excel)
+
+        if coincidence1:
+            codigo = coincidence1.group(1)
+            codigo = codigo[:2] + "-" + codigo[2:]
+        elif coincidence2:
+            codigo = coincidence2.group(1)
+        else:
+            codigo = "ERROR"
+            print(f"El siguiente excel no cuenta con código:\n{name_excel}")
+
+        final_result.append([codigo, list_od, list_sumas])
     
     wb.close()
 
