@@ -1,5 +1,5 @@
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QFileDialog, QButtonGroup, QErrorMessage
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QButtonGroup, QErrorMessage
 from PyQt5.QtGui import QPixmap
 import win32com.client as com
 import os
@@ -8,6 +8,7 @@ import shutil
 import warnings
 from writing import writing_campo, writing_model
 from openpyxl import load_workbook
+from hybrid_ui import Ui_MainWindow
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 nombres_vehiculos = []
@@ -15,534 +16,433 @@ enviado_contador = 1
 param_groups = {}
 
 class MiVentana(QMainWindow):
-    def __init__(self): #Datos
+    def __init__(self): #Ready
         super().__init__()
-
-        # Cargar la interfaz gráfica desde el archivo .ui
-        uic.loadUi("./images/hybrid-gui.ui",self)
-
-        #Definición de listas
-        ####SEGUIMIENTO VEHICULAR####
-        self.Ivehicle_type=["#Driving-Behavior"]
-        self.ILookAheadDistMin=["LookAheadDistMin"]
-        self.ILookAheadDistMax=["LookAheadDistMax"]
-        self.ILookBackDistMin=["LookBackDistMin"]
-        self.ILookBackDistMax=["LookBackDistMax"]
-
-        ####WIEDEMANN 74####
-        self.IW74ax=["W74ax"]
-        self.IW74bxAdd=["W74bxAdd"]
-        self.IW74bxMult=["W74bxMult"]
-
-        ####CAMBIO DE CARRIL####
-        self.IMaxDecelOwn=["MaxDecelOwn"]
-        self.IMaxDecelTrail=["MaxDecelTrail"]
-        self.IDecelRedDistOwn=["DecelRedDistOwn"]
-        self.IDecelRedDistTrail=["DecelRedDistTrail"]
-        self.IAccDecelOwn=["AccDecelOwn"]
-        self.IAccDecelTrail=["AccDecelTrail"]
-        self.IDiffusTm=["DiffusTm"]
-        self.ISafDistFactLnChg=["SafDistFactLnChg"]
-        self.ICoopDecel=["CoopDecel"]
-
-        ####LATERAL####
-        self.IDesLatPos=["DesLatPos"]
-        self.IObsrvAdjLn=["ObsrvAdjLn"]
-        self.IDiamQueu=["DiamQueu"]
-        self.IConsNextTurn=["ConsNextTurn"]
-        self.IOvtLDef=["OvtLDef"]
-        self.IOvtRDef=["OvtRDef"]
-        self.IZipper=["Zipper"] #NEW
-        self.IZipperMinSpeed=["ZipperMinSpeed"] #NEW
-        self.IMinCollTmGain=["MinCollTmGain"]
-        self.IMinSpeedForLat=["MinSpeedForLat"]
-        self.ILatDistStandDef=["LatDistStandDef"]
-        self.ILatDistDrivDef=["LatDistDrivDef"]
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
 
         ####IMAGES####
         imagen = QPixmap('./images/car_follow.png')
-        self.label.setPixmap(imagen)
+        self.ui.label.setPixmap(imagen)
         imagen_2 = QPixmap('./images/lane_change.png')
-        self.label_2.setPixmap(imagen_2)
+        self.ui.label_2.setPixmap(imagen_2)
         image_3 = QPixmap('./images/lateral_behave.png')
-        self.label_3.setPixmap(image_3)
+        self.ui.label_3.setPixmap(image_3)
         image_4 = QPixmap('./images/logo.png')
-        self.label_5.setPixmap(image_4)
+        self.ui.label_5.setPixmap(image_4)
 
         #BOTONES
-        self.save.clicked.connect(self.data_input)
-        self.start.clicked.connect(self.ejecutar_programa)
-        self.carpet.clicked.connect(self.carpeta)
-        self.report.clicked.connect(self.reporte)
-        self.activar.clicked.connect(self.data_campo)
-        self.liviano.clicked.connect(self.livianos)
-        self.menor.clicked.connect(self.menores)
-        self.publico.clicked.connect(self.publicos)
-        self.carga.clicked.connect(self.cargas)
-        self.fijar.clicked.connect(self.fijars)
-        self.exportar.clicked.connect(self.export_params_2_excel)
-        self.get_pushButton.clicked.connect(self.get)
+
+        self.ui.start.clicked.connect(self.ejecutar_programa)
+        self.ui.carpet.clicked.connect(self.carpeta)
+        self.ui.report.clicked.connect(self.reporte)
+        self.ui.activar.clicked.connect(self.data_campo)
+        self.ui.liviano.clicked.connect(self.livianos)
+        self.ui.menor.clicked.connect(self.menores)
+        self.ui.publico.clicked.connect(self.publicos)
+        self.ui.carga.clicked.connect(self.cargas)
+        self.ui.fijar.clicked.connect(self.fijars)
+        self.ui.exportar.clicked.connect(self.export_params_2_excel)
+        self.ui.get_pushButton.clicked.connect(self.get)
         
         #BOTONES PARA LOS TURNOS
         button_group = QButtonGroup(self)
-        button_group.addButton(self.early)
-        button_group.addButton(self.morning)
-        button_group.addButton(self.evening)
-        button_group.addButton(self.night)
+        button_group.addButton(self.ui.early)
+        button_group.addButton(self.ui.morning)
+        button_group.addButton(self.ui.evening)
+        button_group.addButton(self.ui.night)
         button_group.setExclusive(True)
 
         #BOTONES PARA LAS VERSIONES
         button_group_2 = QButtonGroup(self)
-        button_group_2.addButton(self.checkBox)
-        button_group_2.addButton(self.checkBox_2)
-        button_group_2.addButton(self.checkBox_3)
+        button_group_2.addButton(self.ui.checkBox)
+        button_group_2.addButton(self.ui.checkBox_2)
+        button_group_2.addButton(self.ui.checkBox_3)
 
-    def carpeta(self): #Carpeta que contiene el archivo .inpx
-        self.path_file,self.inpx_name = QFileDialog.getOpenFileName(self,"Seleccionar Archivo .inpx","c:\\","Archivos .inpx (*.inpx)")
+    def carpeta(self): #Ready
+        self.path_file, self.inpx_name = QFileDialog.getOpenFileName(self, "Seleccionar Archivo .inpx","c:\\","Archivos .inpx (*.inpx)")
 
-    def data_campo(self):
-        global nombres_vehiculos
-
+    def data_campo(self): #Ready
         #Checking buttons:
         while not (
-            self.early.isChecked() or
-            self.morning.isChecked() or
-            self.evening.isChecked() or
-            self.night.isChecked()
+            self.ui.early.isChecked() or
+            self.ui.morning.isChecked() or
+            self.ui.evening.isChecked() or
+            self.ui.night.isChecked()
             ):
-            return print("Proceso detenido: debes escoger un turno antes de utilizar este botón.")
+            error_message = QErrorMessage(self)
+            return error_message.showMessage("Seleccione un turno primero (Madrugada a Noche)")
         
-        if self.early.isChecked():
+        if self.ui.early.isChecked():
             turno = 0
-        elif self.morning.isChecked():
+        elif self.ui.morning.isChecked():
             turno = 1
-        elif self.evening.isChecked():
+        elif self.ui.evening.isChecked():
             turno = 2
-        elif self.night.isChecked():
+        elif self.ui.night.isChecked():
             turno = 3
 
-        writing_campo(self.path_file, turno)
+        try:
+            writing_campo(self.path_file, turno)
+        except Exception as e:
+            error_message = QErrorMessage(self)
+            error_message.showMessage(str(e))
 
-        print("Proceso terminado.")
+    def reporte(self): #Ready
+        try:
+            writing_model(self.path_file)
+        except Exception as e:
+            error_message = QErrorMessage(self)
+            error_message.showMessage(str(e))
 
-    def reporte(self):
-        global nombres_vehiculos
-        writing_model(self.path_file)
-
-        print("Proceso terminado.")
+        self.ui.enviado.setText("Escritura de vissim terminada.")
         
-    def livianos(self):
+    def livianos(self): #Ready
         guide_path = "./images/Parametros_Guia.xlsx"
         wb = load_workbook(guide_path, read_only=True, data_only=True)
         ws = wb['Hoja1']
 
-        self.LookAheadDistMin.setText   (str(ws.cell(5,6).value))
-        self.LookAheadDistMax.setText   (str(ws.cell(6,6).value))
-        self.LookBackDistMin.setText    (str(ws.cell(8,6).value))
-        self.LookBackDistMax.setText    (str(ws.cell(9,6).value))
-        self.W74ax.setText              (str(ws.cell(12,6).value))
-        self.W74bxAdd.setText           (str(ws.cell(13,6).value))
-        self.W74bxMult.setText          (str(ws.cell(14,6).value))
-        self.MaxDecelOwn.setText        (str(ws.cell(17,6).value))
-        self.MaxDecelTrail.setText      (str(ws.cell(18,6).value))
-        self.DecelRedDistOwn.setText    (str(ws.cell(19,6).value))
-        self.DecelRedDistTrail.setText  (str(ws.cell(20,6).value))
-        self.AccDecelOwn.setText        (str(ws.cell(21,6).value))
-        self.AccDecelTrail.setText      (str(ws.cell(22,6).value))
-        self.DiffusTm.setText           (str(ws.cell(23,6).value))
-        self.SafDistFactLnChg.setText   (str(ws.cell(25,6).value))
-        self.CoopDecel.setText          (str(ws.cell(26,6).value))
-        self.MinCollTmGain.setText      (str(ws.cell(35,6).value))
-        self.MinSpeedForLat.setText     (str(ws.cell(36,6).value))
-        self.LatDistStandDef.setText    (str(ws.cell(38,7).value))
-        self.LatDistDrivDef.setText     (str(ws.cell(39,7).value))
+        self.ui.LookAheadDistMin.setText   (str(ws.cell(5,6).value))
+        self.ui.LookAheadDistMax.setText   (str(ws.cell(6,6).value))
+        self.ui.LookBackDistMin.setText    (str(ws.cell(8,6).value))
+        self.ui.LookBackDistMax.setText    (str(ws.cell(9,6).value))
+        self.ui.W74ax.setText              (str(ws.cell(12,6).value))
+        self.ui.W74bxAdd.setText           (str(ws.cell(13,6).value))
+        self.ui.W74bxMult.setText          (str(ws.cell(14,6).value))
+        self.ui.MaxDecelOwn.setText        (str(ws.cell(17,6).value))
+        self.ui.MaxDecelTrail.setText      (str(ws.cell(18,6).value))
+        self.ui.DecelRedDistOwn.setText    (str(ws.cell(19,6).value))
+        self.ui.DecelRedDistTrail.setText  (str(ws.cell(20,6).value))
+        self.ui.AccDecelOwn.setText        (str(ws.cell(21,6).value))
+        self.ui.AccDecelTrail.setText      (str(ws.cell(22,6).value))
+        self.ui.DiffusTm.setText           (str(ws.cell(23,6).value))
+        self.ui.SafDistFactLnChg.setText   (str(ws.cell(25,6).value))
+        self.ui.CoopDecel.setText          (str(ws.cell(26,6).value))
+        self.ui.MinCollTmGain.setText      (str(ws.cell(35,6).value))
+        self.ui.MinSpeedForLat.setText     (str(ws.cell(36,6).value))
+        self.ui.LatDistStandDef.setText    (str(ws.cell(38,7).value))
+        self.ui.LatDistDrivDef.setText     (str(ws.cell(39,7).value))
         wb.close()
 
-    def menores(self):
+    def menores(self): #Ready
         guide_path = "./images/Parametros_Guia.xlsx"
         wb = load_workbook(guide_path, read_only=True, data_only=True)
         ws = wb['Hoja1']
 
-        self.LookAheadDistMin.setText   (str(ws.cell(5,8).value))
-        self.LookAheadDistMax.setText   (str(ws.cell(6,8).value))
-        self.LookBackDistMin.setText    (str(ws.cell(8,8).value))
-        self.LookBackDistMax.setText    (str(ws.cell(9,8).value))
-        self.W74ax.setText              (str(ws.cell(12,8).value))
-        self.W74bxAdd.setText           (str(ws.cell(13,8).value))
-        self.W74bxMult.setText          (str(ws.cell(14,8).value))
-        self.MaxDecelOwn.setText        (str(ws.cell(17,8).value))
-        self.MaxDecelTrail.setText      (str(ws.cell(18,8).value))
-        self.DecelRedDistOwn.setText    (str(ws.cell(19,8).value))
-        self.DecelRedDistTrail.setText  (str(ws.cell(20,8).value))
-        self.AccDecelOwn.setText        (str(ws.cell(21,8).value))
-        self.AccDecelTrail.setText      (str(ws.cell(22,8).value))
-        self.DiffusTm.setText           (str(ws.cell(23,8).value))
-        self.SafDistFactLnChg.setText   (str(ws.cell(25,8).value))
-        self.CoopDecel.setText          (str(ws.cell(26,8).value))
-        self.MinCollTmGain.setText      (str(ws.cell(35,8).value))
-        self.MinSpeedForLat.setText     (str(ws.cell(36,8).value))
-        self.LatDistStandDef.setText    (str(ws.cell(38,9).value))
-        self.LatDistDrivDef.setText     (str(ws.cell(39,9).value))
+        self.ui.LookAheadDistMin.setText   (str(ws.cell(5,8).value))
+        self.ui.LookAheadDistMax.setText   (str(ws.cell(6,8).value))
+        self.ui.LookBackDistMin.setText    (str(ws.cell(8,8).value))
+        self.ui.LookBackDistMax.setText    (str(ws.cell(9,8).value))
+        self.ui.W74ax.setText              (str(ws.cell(12,8).value))
+        self.ui.W74bxAdd.setText           (str(ws.cell(13,8).value))
+        self.ui.W74bxMult.setText          (str(ws.cell(14,8).value))
+        self.ui.MaxDecelOwn.setText        (str(ws.cell(17,8).value))
+        self.ui.MaxDecelTrail.setText      (str(ws.cell(18,8).value))
+        self.ui.DecelRedDistOwn.setText    (str(ws.cell(19,8).value))
+        self.ui.DecelRedDistTrail.setText  (str(ws.cell(20,8).value))
+        self.ui.AccDecelOwn.setText        (str(ws.cell(21,8).value))
+        self.ui.AccDecelTrail.setText      (str(ws.cell(22,8).value))
+        self.ui.DiffusTm.setText           (str(ws.cell(23,8).value))
+        self.ui.SafDistFactLnChg.setText   (str(ws.cell(25,8).value))
+        self.ui.CoopDecel.setText          (str(ws.cell(26,8).value))
+        self.ui.MinCollTmGain.setText      (str(ws.cell(35,8).value))
+        self.ui.MinSpeedForLat.setText     (str(ws.cell(36,8).value))
+        self.ui.LatDistStandDef.setText    (str(ws.cell(38,9).value))
+        self.ui.LatDistDrivDef.setText     (str(ws.cell(39,9).value))
         wb.close()
 
-    def publicos(self):
+    def publicos(self): #Ready
         guide_path = "./images/Parametros_Guia.xlsx"
         wb = load_workbook(guide_path, read_only=True, data_only=True)
         ws = wb['Hoja1']
 
-        self.LookAheadDistMin.setText   (str(ws.cell(5,10).value))
-        self.LookAheadDistMax.setText   (str(ws.cell(6,10).value))
-        self.LookBackDistMin.setText    (str(ws.cell(8,10).value))
-        self.LookBackDistMax.setText    (str(ws.cell(9,10).value))
-        self.W74ax.setText              (str(ws.cell(12,10).value))
-        self.W74bxAdd.setText           (str(ws.cell(13,10).value))
-        self.W74bxMult.setText          (str(ws.cell(14,10).value))
-        self.MaxDecelOwn.setText        (str(ws.cell(17,10).value))
-        self.MaxDecelTrail.setText      (str(ws.cell(18,10).value))
-        self.DecelRedDistOwn.setText    (str(ws.cell(19,10).value))
-        self.DecelRedDistTrail.setText  (str(ws.cell(20,10).value))
-        self.AccDecelOwn.setText        (str(ws.cell(21,10).value))
-        self.AccDecelTrail.setText      (str(ws.cell(22,10).value))
-        self.DiffusTm.setText           (str(ws.cell(23,10).value))
-        self.SafDistFactLnChg.setText   (str(ws.cell(25,10).value))
-        self.CoopDecel.setText          (str(ws.cell(26,10).value))
-        self.MinCollTmGain.setText      (str(ws.cell(35,10).value))
-        self.MinSpeedForLat.setText     (str(ws.cell(36,10).value))
-        self.LatDistStandDef.setText    (str(ws.cell(38,11).value))
-        self.LatDistDrivDef.setText     (str(ws.cell(39,11).value))
+        self.ui.LookAheadDistMin.setText   (str(ws.cell(5,10).value))
+        self.ui.LookAheadDistMax.setText   (str(ws.cell(6,10).value))
+        self.ui.LookBackDistMin.setText    (str(ws.cell(8,10).value))
+        self.ui.LookBackDistMax.setText    (str(ws.cell(9,10).value))
+        self.ui.W74ax.setText              (str(ws.cell(12,10).value))
+        self.ui.W74bxAdd.setText           (str(ws.cell(13,10).value))
+        self.ui.W74bxMult.setText          (str(ws.cell(14,10).value))
+        self.ui.MaxDecelOwn.setText        (str(ws.cell(17,10).value))
+        self.ui.MaxDecelTrail.setText      (str(ws.cell(18,10).value))
+        self.ui.DecelRedDistOwn.setText    (str(ws.cell(19,10).value))
+        self.ui.DecelRedDistTrail.setText  (str(ws.cell(20,10).value))
+        self.ui.AccDecelOwn.setText        (str(ws.cell(21,10).value))
+        self.ui.AccDecelTrail.setText      (str(ws.cell(22,10).value))
+        self.ui.DiffusTm.setText           (str(ws.cell(23,10).value))
+        self.ui.SafDistFactLnChg.setText   (str(ws.cell(25,10).value))
+        self.ui.CoopDecel.setText          (str(ws.cell(26,10).value))
+        self.ui.MinCollTmGain.setText      (str(ws.cell(35,10).value))
+        self.ui.MinSpeedForLat.setText     (str(ws.cell(36,10).value))
+        self.ui.LatDistStandDef.setText    (str(ws.cell(38,11).value))
+        self.ui.LatDistDrivDef.setText     (str(ws.cell(39,11).value))
         wb.close()
 
-    def cargas(self):
+    def cargas(self): #Ready
         guide_path = "./images/Parametros_Guia.xlsx"
         wb = load_workbook(guide_path, read_only=True, data_only=True)
         ws = wb['Hoja1']
 
-        self.LookAheadDistMin.setText   (str(ws.cell(5,12).value))
-        self.LookAheadDistMax.setText   (str(ws.cell(6,12).value))
-        self.LookBackDistMin.setText    (str(ws.cell(8,12).value))
-        self.LookBackDistMax.setText    (str(ws.cell(9,12).value))
-        self.W74ax.setText              (str(ws.cell(12,12).value))
-        self.W74bxAdd.setText           (str(ws.cell(13,12).value))
-        self.W74bxMult.setText          (str(ws.cell(14,12).value))
-        self.MaxDecelOwn.setText        (str(ws.cell(17,12).value))
-        self.MaxDecelTrail.setText      (str(ws.cell(18,12).value))
-        self.DecelRedDistOwn.setText    (str(ws.cell(19,12).value))
-        self.DecelRedDistTrail.setText  (str(ws.cell(20,12).value))
-        self.AccDecelOwn.setText        (str(ws.cell(21,12).value))
-        self.AccDecelTrail.setText      (str(ws.cell(22,12).value))
-        self.DiffusTm.setText           (str(ws.cell(23,12).value))
-        self.SafDistFactLnChg.setText   (str(ws.cell(25,12).value))
-        self.CoopDecel.setText          (str(ws.cell(26,12).value))
-        self.MinCollTmGain.setText      (str(ws.cell(35,12).value))
-        self.MinSpeedForLat.setText     (str(ws.cell(36,12).value))
-        self.LatDistStandDef.setText    (str(ws.cell(38,13).value))
-        self.LatDistDrivDef.setText     (str(ws.cell(39,13).value))
+        self.ui.LookAheadDistMin.setText   (str(ws.cell(5,12).value))
+        self.ui.LookAheadDistMax.setText   (str(ws.cell(6,12).value))
+        self.ui.LookBackDistMin.setText    (str(ws.cell(8,12).value))
+        self.ui.LookBackDistMax.setText    (str(ws.cell(9,12).value))
+        self.ui.W74ax.setText              (str(ws.cell(12,12).value))
+        self.ui.W74bxAdd.setText           (str(ws.cell(13,12).value))
+        self.ui.W74bxMult.setText          (str(ws.cell(14,12).value))
+        self.ui.MaxDecelOwn.setText        (str(ws.cell(17,12).value))
+        self.ui.MaxDecelTrail.setText      (str(ws.cell(18,12).value))
+        self.ui.DecelRedDistOwn.setText    (str(ws.cell(19,12).value))
+        self.ui.DecelRedDistTrail.setText  (str(ws.cell(20,12).value))
+        self.ui.AccDecelOwn.setText        (str(ws.cell(21,12).value))
+        self.ui.AccDecelTrail.setText      (str(ws.cell(22,12).value))
+        self.ui.DiffusTm.setText           (str(ws.cell(23,12).value))
+        self.ui.SafDistFactLnChg.setText   (str(ws.cell(25,12).value))
+        self.ui.CoopDecel.setText          (str(ws.cell(26,12).value))
+        self.ui.MinCollTmGain.setText      (str(ws.cell(35,12).value))
+        self.ui.MinSpeedForLat.setText     (str(ws.cell(36,12).value))
+        self.ui.LatDistStandDef.setText    (str(ws.cell(38,13).value))
+        self.ui.LatDistDrivDef.setText     (str(ws.cell(39,13).value))
         wb.close()
 
-    def get(self):
-        self.version10=self.checkBox.isChecked()
-        self.version24=self.checkBox_2.isChecked()
+    def get(self): #Ready
+        self.version10 = self.ui.checkBox.isChecked()
+        self.version24 = self.ui.checkBox_2.isChecked()
         #INICIO DE COM
-        if self.version10:
-            vissim = com.Dispatch('Vissim.Vissim.10')
-        elif self.version24:
-            vissim = com.Dispatch('Vissim.Vissim.24')
     
-        key = int(self.vehicle_type.text())
-        self.LookAheadDistMin.setText       (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LookAheadDistMin')))
-        self.LookAheadDistMax.setText       (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LookAheadDistMax')))
-        self.LookBackDistMin.setText        (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LookBackDistMin')))
-        self.LookBackDistMax.setText        (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LookBackDistMax')))
-        self.W74ax.setText                  (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('W74ax')))
-        self.W74bxAdd.setText               (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('W74bxAdd')))
-        self.W74bxMult.setText              (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('W74bxMult')))
-        self.MaxDecelOwn.setText            (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('MaxDecelOwn')))
-        self.MaxDecelTrail.setText          (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('MaxDecelTrail')))
-        self.DecelRedDistOwn.setText        (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('DecelRedDistOwn')))
-        self.DecelRedDistTrail.setText      (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('DecelRedDistTrail')))
-        self.AccDecelOwn.setText            (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('AccDecelOwn')))
-        self.AccDecelTrail.setText          (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('AccDecelTrail')))
-        self.DiffusTm.setText               (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('DiffusTm')))
-        self.SafDistFactLnChg.setText       (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('SafDistFactLnChg')))
-        self.CoopDecel.setText              (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('CoopDecel')))
-        self.MinCollTmGain.setText          (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('MinCollTmGain')))
-        self.MinSpeedForLat.setText         (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('MinSpeedForLat')))
-        self.LatDistStandDef.setText        (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LatDistStandDef')))
-        self.LatDistDrivDef.setText         (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LatDistDrivDef')))
+        if self.version10:
+            try:
+                vissim = com.Dispatch('Vissim.Vissim.10')
+            except Exception as e:
+                error_message = QErrorMessage(self)
+                return error_message.showMessage("No se pudo conectar al COM")
+
+        elif self.version24:
+            try:
+                vissim = com.Dispatch('Vissim.Vissim.24')
+            except Exception as e:
+                error_message = QErrorMessage(self)
+                return error_message.showMessage("No se pudo conectar al COM")
+        else:
+            error_message = QErrorMessage(self)
+            return error_message.showMessage("Escoger una versión de vissim primero")
+
+        key = int(self.ui.vehicle_type.text())
+        
+        self.ui.LookAheadDistMin.setText       (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LookAheadDistMin')))
+        self.ui.LookAheadDistMax.setText       (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LookAheadDistMax')))
+        self.ui.LookBackDistMin.setText        (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LookBackDistMin')))
+        self.ui.LookBackDistMax.setText        (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LookBackDistMax')))
+        self.ui.W74ax.setText                  (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('W74ax')))
+        self.ui.W74bxAdd.setText               (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('W74bxAdd')))
+        self.ui.W74bxMult.setText              (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('W74bxMult')))
+        self.ui.MaxDecelOwn.setText            (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('MaxDecelOwn')))
+        self.ui.MaxDecelTrail.setText          (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('MaxDecelTrail')))
+        self.ui.DecelRedDistOwn.setText        (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('DecelRedDistOwn')))
+        self.ui.DecelRedDistTrail.setText      (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('DecelRedDistTrail')))
+        self.ui.AccDecelOwn.setText            (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('AccDecelOwn')))
+        self.ui.AccDecelTrail.setText          (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('AccDecelTrail')))
+        self.ui.DiffusTm.setText               (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('DiffusTm')))
+        self.ui.SafDistFactLnChg.setText       (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('SafDistFactLnChg')))
+        self.ui.CoopDecel.setText              (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('CoopDecel')))
+        self.ui.MinCollTmGain.setText          (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('MinCollTmGain')))
+        self.ui.MinSpeedForLat.setText         (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('MinSpeedForLat')))
+        self.ui.LatDistStandDef.setText        (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LatDistStandDef')))
+        self.ui.LatDistDrivDef.setText         (str(vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('LatDistDrivDef')))
 
         DesLatPos_ui = vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('DesLatPos')
         if DesLatPos_ui == 'MIDDLE':
-            self.DesLatPos.setCurrentIndex(0)
+            self.ui.DesLatPos.setCurrentIndex(0)
         elif DesLatPos_ui == 'ANY':
-            self.DesLatPos.setCurrentIndex(1)
+            self.ui.DesLatPos.setCurrentIndex(1)
         elif DesLatPos_ui == 'RIGHT':
-            self.DesLatPos.setCurrentIndex(2)
+            self.ui.DesLatPos.setCurrentIndex(2)
         elif DesLatPos_ui == 'LEFT':
-            self.DesLatPos.setCurrentIndex(3)
+            self.ui.DesLatPos.setCurrentIndex(3)
 
         if vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('ObsrvAdjLn') == 0:
-            self.ObsrvAdjLn.setChecked(False)
-        else: self.ObsrvAdjLn.setChecked(True)
+            self.ui.ObsrvAdjLn.setChecked(False)
+        else: self.ui.ObsrvAdjLn.setChecked(True)
         if vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('DiamQueu') == 0:
-            self.DiamQueu.setChecked(False)
-        else: self.DiamQueu.setChecked(True)
+            self.ui.DiamQueu.setChecked(False)
+        else: self.ui.DiamQueu.setChecked(True)
         if vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('ConsNextTurn') == 0:
-            self.ConsNextTurn.setChecked(False)
-        else: self.ConsNextTurn.setChecked(True)
+            self.ui.ConsNextTurn.setChecked(False)
+        else: self.ui.ConsNextTurn.setChecked(True)
         if vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('OvtLDef') == 0:
-            self.OvtLDef.setChecked(False)
-        else: self.OvtLDef.setChecked(True)
+            self.ui.OvtLDef.setChecked(False)
+        else: self.ui.OvtLDef.setChecked(True)
         if vissim.Net.DrivingBehaviors.ItemByKey(key).AttValue('OvtRDef') == 0:
-            self.OvtRDef.setChecked(False)
-        else: self.OvtRDef.setChecked(True)        
+            self.ui.OvtRDef.setChecked(False)
+        else: self.ui.OvtRDef.setChecked(True)        
 
-    def data_input(self):
-        self.version10      =self.checkBox.isChecked()
-        self.version24      =self.checkBox_2.isChecked()
-        self.Ivehicle_type.append         (self.vehicle_type.text()) #Nro. de Driving Behavior
-
-        self.ILookAheadDistMin.append     (self.LookAheadDistMin.text())
-        self.ILookAheadDistMax.append     (self.LookAheadDistMax.text())
-        self.ILookBackDistMin.append      (self.LookBackDistMin.text())
-        self.ILookBackDistMax.append      (self.LookBackDistMax.text())
-        self.IW74ax.append                (self.W74ax.text())
-        self.IW74bxAdd.append             (self.W74bxAdd.text())
-        self.IW74bxMult.append            (self.W74bxMult.text())
-        self.IMaxDecelOwn.append          (self.MaxDecelOwn.text())
-        self.IMaxDecelTrail.append        (self.MaxDecelTrail.text())
-        self.IDecelRedDistOwn.append      (self.DecelRedDistOwn.text())
-        self.IDecelRedDistTrail.append    (self.DecelRedDistTrail.text())
-        self.IAccDecelOwn.append          (self.AccDecelOwn.text())
-        self.IAccDecelTrail.append        (self.AccDecelTrail.text())
-        self.IDiffusTm.append             (self.DiffusTm.text())
-        self.ISafDistFactLnChg.append     (self.SafDistFactLnChg.text())
-        self.ICoopDecel.append            (self.CoopDecel.text())
-        self.IMinCollTmGain.append        (self.MinCollTmGain.text())
-        self.IMinSpeedForLat.append       (self.MinSpeedForLat.text())
-        self.ILatDistStandDef.append      (self.LatDistStandDef.text())
-        self.ILatDistDrivDef.append       (self.LatDistDrivDef.text())
-
-        #News
-        self.IDesLatPos.append(self.DesLatPos.currentText())
-
-        if self.ObsrvAdjLn.isChecked(): self.IObsrvAdjLn.append("true")
-        else: self.IObsrvAdjLn.append("false")
-
-        if self.DiamQueu.isChecked(): self.IDiamQueu.append("true")
-        else: self.IDiamQueu.append("false")
-
-        if self.ConsNextTurn.isChecked(): self.IConsNextTurn.append("true")
-        else: self.IConsNextTurn.append("false")
-
-        if self.OvtLDef.isChecked(): self.IOvtLDef.append("true")
-        else: self.IOvtLDef.append("false")
-
-        if self.OvtRDef.isChecked(): self.IOvtRDef.append("true")
-        else: self.IOvtRDef.append("false")
-
-        if self.version24:
-            if self.checkBox_3.isChecked():
-                self.IZipper.append("true")
-                self.IZipperMinSpeed.append(self.ZipperMinSpeed.text())
-
-        #CHECK
-        #self.enviado.setText(f"SAVED: {self.vehicle_type.text()}")
-
-    def ejecutar_programa(self):
+    def ejecutar_programa(self): #Ready
         global enviado_contador
         ####INTRODUCCION DE DATA####
-        vehicle_type        =self.Ivehicle_type
-        LookAheadDistMin    =self.ILookAheadDistMin
-        LookAheadDistMax    =self.ILookAheadDistMax
-        LookBackDistMin     =self.ILookBackDistMin
-        LookBackDistMax     =self.ILookBackDistMax
+        vehicle_type        =self.ui.vehicle_type.text()
+        LookAheadDistMin    =self.ui.LookAheadDistMin.text()
+        LookAheadDistMax    =self.ui.LookAheadDistMax.text()
+        LookBackDistMin     =self.ui.LookBackDistMin.text()
+        LookBackDistMax     =self.ui.LookBackDistMax.text()
 
         ####WIEDEMANN 74####
-        W74ax               =self.IW74ax
-        W74bxAdd            =self.IW74bxAdd
-        W74bxMult           =self.IW74bxMult
+        W74ax               =self.ui.W74ax.text()
+        W74bxAdd            =self.ui.W74bxAdd.text()
+        W74bxMult           =self.ui.W74bxMult.text()
 
         ####CAMBIO DE CARRIL####
-        MaxDecelOwn         =self.IMaxDecelOwn
-        MaxDecelTrail       =self.IMaxDecelTrail
-        DecelRedDistOwn     =self.IDecelRedDistOwn
-        DecelRedDistTrail   =self.IDecelRedDistTrail
-        AccDecelOwn         =self.IAccDecelOwn
-        AccDecelTrail       =self.IAccDecelTrail
-        DiffusTm            =self.IDiffusTm
-        SafDistFactLnChg    =self.ISafDistFactLnChg
-        CoopDecel           =self.ICoopDecel
+        MaxDecelOwn         =self.ui.MaxDecelOwn.text()
+        MaxDecelTrail       =self.ui.MaxDecelTrail.text()
+        DecelRedDistOwn     =self.ui.DecelRedDistOwn.text()
+        DecelRedDistTrail   =self.ui.DecelRedDistTrail.text()
+        AccDecelOwn         =self.ui.AccDecelOwn.text()
+        AccDecelTrail       =self.ui.AccDecelTrail.text()
+        DiffusTm            =self.ui.DiffusTm.text()
+        SafDistFactLnChg    =self.ui.SafDistFactLnChg.text()
+        CoopDecel           =self.ui.CoopDecel.text()
 
         ####LATERAL####
-        MinCollTmGain       =self.IMinCollTmGain
-        MinSpeedForLat      =self.IMinSpeedForLat
-        LatDistStandDef     =self.ILatDistStandDef
-        LatDistDrivDef      =self.ILatDistDrivDef
+        MinCollTmGain       =self.ui.MinCollTmGain.text()
+        MinSpeedForLat      =self.ui.MinSpeedForLat.text()
+        LatDistStandDef     =self.ui.LatDistStandDef.text()
+        LatDistDrivDef      =self.ui.LatDistDrivDef.text()
 
         ####ACCESORIES####
-        DesLatPos           =self.IDesLatPos
-        ObsrvAdjLn          =self.IObsrvAdjLn
-        DiamQueu            =self.IDiamQueu
-        ConsNextTurn        =self.IConsNextTurn
-        OvtLDef             =self.IOvtLDef
-        OvtRDef             =self.IOvtRDef
+        DesLatPos           =self.ui.DesLatPos.currentText()
+
+        if self.ui.ObsrvAdjLn.isChecked(): ObsrvAdjLn="true"
+        else: ObsrvAdjLn="false"
+
+        if self.ui.DiamQueu.isChecked(): DiamQueu="true"
+        else: DiamQueu="false"
+  
+        if self.ui.ConsNextTurn.isChecked(): ConsNextTurn="true"
+        else: ConsNextTurn="false"
+
+        if self.ui.OvtLDef.isChecked(): OvtLDef="true"
+        else: OvtLDef="false"
+
+        if self.ui.OvtRDef.isChecked(): OvtRDef="true"
+        else: OvtRDef="false"
 
         ####NEWS####
-        if self.version24:
-            Zipper              = self.IZipper
-            ZipperMinSpeed      = self.IZipperMinSpeed
+        try:
+            if self.version24:
+                if self.ui.checkBox_3.isChecked():
+                    Zipper              = "true"
+                    ZipperMinSpeed      = self.ui.ZipperMinSpeed.text()
+        except Exception as e:
+            error_message = QErrorMessage(self)
+            return error_message.showMessage("Selecciona la versión de vissim primero.")
 
         #INICIO DE COM
-        if self.version10:
-            vissim = com.Dispatch('Vissim.Vissim.10')
-        elif self.version24:
-            vissim = com.Dispatch('Vissim.Vissim.24')
-        
-        #try:
-        #    vissim = com.GetObject(Class="Vissim.Vissim.10")
-        #except com.pywintypes.com_error as e:
-        #    print("No se pudo conectar a Vissim:",e)
+        try:
+            if self.version10:
+                vissim = com.Dispatch('Vissim.Vissim.10')
+            elif self.version24:
+                vissim = com.Dispatch('Vissim.Vissim.24')
+        except Exception as e:
+            error_message = QErrorMessage(self)
+            return error_message.showMessage("No hay una estancia de Vissim activa o no has seleccionado una versión.")
+
+        if vissim.Simulation.AttValue('IsRunning'):
+                vissim.Simulation.RunSingleStep() #Pause
 
         ##################################
         # ENVIO DE INFORMACIÓN AL VISSIM #
         ##################################
 
-        if vissim.Simulation.AttValue('IsRunning'):
-            vissim.Simulation.RunSingleStep() #Pausa
+        try:
+            key = int(vehicle_type)
+        except Exception as inst:
+            error_message = QErrorMessage(self)
+            return error_message.showMessage("Escoge el 'No' del comportamiento vehicular")
 
-        key = int(vehicle_type[1])
-
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(LookAheadDistMin[0],LookAheadDistMin[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(LookAheadDistMax[0],LookAheadDistMax[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(LookBackDistMin[0],LookBackDistMin[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(LookBackDistMax[0],LookBackDistMax[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(W74ax[0],W74ax[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(W74bxAdd[0],W74bxAdd[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(W74bxMult[0],W74bxMult[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(MaxDecelOwn[0],MaxDecelOwn[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(MaxDecelTrail[0],MaxDecelTrail[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(DecelRedDistOwn[0],DecelRedDistOwn[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(DecelRedDistTrail[0],DecelRedDistTrail[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(AccDecelOwn[0],AccDecelOwn[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(AccDecelTrail[0],AccDecelTrail[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(DiffusTm[0],DiffusTm[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(SafDistFactLnChg[0],SafDistFactLnChg[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(CoopDecel[0],CoopDecel[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(MinCollTmGain[0],MinCollTmGain[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(MinSpeedForLat[0],MinSpeedForLat[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(LatDistStandDef[0],LatDistStandDef[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(LatDistDrivDef[0],LatDistDrivDef[1])
-        #NEWS:
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(DesLatPos[0],DesLatPos[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(ObsrvAdjLn[0],ObsrvAdjLn[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(DiamQueu[0],DiamQueu[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(ConsNextTurn[0],ConsNextTurn[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(OvtLDef[0],OvtLDef[1])
-        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(OvtRDef[0],OvtRDef[1])
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("LookAheadDistMin",  LookAheadDistMin)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("LookAheadDistMax",  LookAheadDistMax)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("LookBackDistMin",   LookBackDistMin)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("LookBackDistMax",   LookBackDistMax)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("W74ax",             W74ax)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("W74bxAdd",          W74bxAdd)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("W74bxMult",         W74bxMult)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("MaxDecelOwn",       MaxDecelOwn)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("MaxDecelTrail",     MaxDecelTrail)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("DecelRedDistOwn",   DecelRedDistOwn)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("DecelRedDistTrail", DecelRedDistTrail)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("AccDecelOwn",       AccDecelOwn)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("AccDecelTrail",     AccDecelTrail)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("DiffusTm",          DiffusTm)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("SafDistFactLnChg",  SafDistFactLnChg)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("CoopDecel",         CoopDecel)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("MinCollTmGain",     MinCollTmGain)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("MinSpeedForLat",    MinSpeedForLat)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("LatDistStandDef",   LatDistStandDef)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("LatDistDrivDef",    LatDistDrivDef)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("DesLatPos",         DesLatPos)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("ObsrvAdjLn",        ObsrvAdjLn)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("DiamQueu",          DiamQueu)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("ConsNextTurn",      ConsNextTurn)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("OvtLDef",           OvtLDef)
+        vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("OvtRDef",           OvtRDef)
         #ZIPPER:
         if self.version24:
-            if self.checkBox_3.isChecked():
-                vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(Zipper[0],Zipper[1])
-                vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue(ZipperMinSpeed[0],ZipperMinSpeed[1])
+            if self.ui.checkBox_3.isChecked():
+                vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("Zipper",Zipper)
+                vissim.Net.DrivingBehaviors.ItemByKey(key).SetAttValue("ZipperMinSpeed",ZipperMinSpeed)
 
         #CHECK
-        self.enviado.setText(f"ENVIADO {enviado_contador}")
+        self.ui.enviado.setText(f"ENVIADO {enviado_contador}")
         enviado_contador += 1
 
-        #wins = gw.getWindowsWithTitle('Vissim')
-        #print(wins)
-        #wins[1].activate()
-
-        #Definición de listas
-        ####SEGUIMIENTO VEHICULAR####
-        self.Ivehicle_type=["#Driving-Behavior"]
-        self.ILookAheadDistMin=["LookAheadDistMin"]
-        self.ILookAheadDistMax=["LookAheadDistMax"]
-        self.ILookBackDistMin=["LookBackDistMin"]
-        self.ILookBackDistMax=["LookBackDistMax"]
-
-        ####WIEDEMANN 74####
-        self.IW74ax=["W74ax"]
-        self.IW74bxAdd=["W74bxAdd"]
-        self.IW74bxMult=["W74bxMult"]
-
-        ####CAMBIO DE CARRIL####
-        self.IMaxDecelOwn=["MaxDecelOwn"]
-        self.IMaxDecelTrail=["MaxDecelTrail"]
-        self.IDecelRedDistOwn=["DecelRedDistOwn"]
-        self.IDecelRedDistTrail=["DecelRedDistTrail"]
-        self.IAccDecelOwn=["AccDecelOwn"]
-        self.IAccDecelTrail=["AccDecelTrail"]
-        self.IDiffusTm=["DiffusTm"]
-        self.ISafDistFactLnChg=["SafDistFactLnChg"]
-        self.ICoopDecel=["CoopDecel"]
-
-        ####LATERAL####
-        self.IMinCollTmGain=["MinCollTmGain"]
-        self.IMinSpeedForLat=["MinSpeedForLat"]
-        self.ILatDistStandDef=["LatDistStandDef"]
-        self.ILatDistDrivDef=["LatDistDrivDef"]
-        self.IConsNextTurn=["ConsNextTurn"]
-
-        #NEWS
-        self.IDesLatPos=["DesLatPos"]
-        self.IObsrvAdjLn=["ObsrvAdjLn"]
-        self.IDiamQueu=["DiamQueu"]
-        self.IConsNextTurn=["ConsNextTurn"]
-        self.IOvtLDef=["OvtLDef"]
-        self.IOvtRDef=["OvtRDef"]
-
-        #ZIPPER
-        self.IZipper=["Zipper"]
-        self.IZipperMinSpeed=["ZipperMinSpeed"]
-
-        print("Cambios de parámetros exitoso")
-
-    def fijars(self):
+    def fijars(self): #Ready
         global param_groups
 
+        if self.ui.vehicle_type.text() == '':
+            error_message = QErrorMessage(self)
+            return error_message.showMessage("Ingresa el comportamiento vehicular primero.")
+
         default_dictionary = {
-            1: self.LookAheadDistMin.text(),
-            2: self.LookAheadDistMax.text(),
-            3: self.LookBackDistMin.text(),
-            4: self.LookBackDistMax.text(),
-            5: self.W74ax.text(),
-            6: self.W74bxAdd.text(),
-            7: self.W74bxMult.text(),
-            8: self.MaxDecelOwn.text(),
-            9: self.MaxDecelTrail.text(),
-            10: self.DecelRedDistOwn.text(),
-            11: self.DecelRedDistTrail.text(),
-            12: self.AccDecelOwn.text(),
-            13: self.AccDecelTrail.text(),
-            14: self.DiffusTm.text(),
-            15: self.SafDistFactLnChg.text(),
-            16: self.CoopDecel.text(),
-            17: self.DesLatPos.currentText(),
-            18: str(self.ObsrvAdjLn.isChecked()),
-            19: str(self.DiamQueu.isChecked()),
-            20: str(self.ConsNextTurn.isChecked()),
-            21: self.MinCollTmGain.text(),
-            22: self.MinSpeedForLat.text(),
-            23: str(self.OvtLDef.isChecked()),
-            24: str(self.OvtRDef.isChecked()),
-            25: self.LatDistStandDef.text(),
-            26: self.LatDistDrivDef.text(),
+            1: self.ui.LookAheadDistMin.text(),
+            2: self.ui.LookAheadDistMax.text(),
+            3: self.ui.LookBackDistMin.text(),
+            4: self.ui.LookBackDistMax.text(),
+            5: self.ui.W74ax.text(),
+            6: self.ui.W74bxAdd.text(),
+            7: self.ui.W74bxMult.text(),
+            8: self.ui.MaxDecelOwn.text(),
+            9: self.ui.MaxDecelTrail.text(),
+            10: self.ui.DecelRedDistOwn.text(),
+            11: self.ui.DecelRedDistTrail.text(),
+            12: self.ui.AccDecelOwn.text(),
+            13: self.ui.AccDecelTrail.text(),
+            14: self.ui.DiffusTm.text(),
+            15: self.ui.SafDistFactLnChg.text(),
+            16: self.ui.CoopDecel.text(),
+            17: self.ui.DesLatPos.currentText(),
+            18: str(self.ui.ObsrvAdjLn.isChecked()),
+            19: str(self.ui.DiamQueu.isChecked()),
+            20: str(self.ui.ConsNextTurn.isChecked()),
+            21: self.ui.MinCollTmGain.text(),
+            22: self.ui.MinSpeedForLat.text(),
+            23: str(self.ui.OvtLDef.isChecked()),
+            24: str(self.ui.OvtRDef.isChecked()),
+            25: self.ui.LatDistStandDef.text(),
+            26: self.ui.LatDistDrivDef.text(),
         }
 
-        param_groups[self.vehicle_type.text()] = default_dictionary
+        param_groups[self.ui.vehicle_type.text()] = default_dictionary
 
-        print(param_groups)
+        self.ui.enviado.setText(f"Send {self.ui.vehicle_type.text()}")
 
-        self.enviado.setText(f"Send {self.vehicle_type.text()}")
-
-    def export_params_2_excel(self):
+    def export_params_2_excel(self): #Ready
         global param_groups
         original_path = "./images/Parametros_Model.xlsx"
         try:
             directorio,_ = os.path.split(self.path_file)
         except AttributeError:
-            return print("Debes seleccionar la ubicación del archivo Vissim para que se guarde allí la excel.")
+            error_message = QErrorMessage(self)
+            return error_message.showMessage("Debes seleccionar la ubicación del archivo Vissim para que se guarde allí el excel.")
+        
         modelo = os.path.join(directorio,'Parametros_Calibracion.xlsx')
 
         shutil.copy2(original_path,modelo)
@@ -568,16 +468,14 @@ class MiVentana(QMainWindow):
                     except ValueError:
                         worksheet.cell(files[i],7+index1*2).value=str(value)
                 else:
-                    #print(files[i],7+index1*2)
                     try:
                         worksheet.cell(files[i],7+index1*2).value=float(value)
                     except ValueError:
                         worksheet.cell(files[i],7+index1*2).value=str(value)
 
-        print("Reporte de parámetros generados")
         workbook.save(modelo)
         workbook.close()
-        self.enviado.setText("PÁRAMETROS OK!")
+        self.ui.enviado.setText("PÁRAMETROS OK!")
 
 def main():
     app = QApplication([])

@@ -7,8 +7,7 @@ def obtener_numero_al_final(archivo):
     match = re.search(r'(\d+)\.att$', archivo)
     return int(match.group(1)) if match else 0
 
-def peakhourfinder(args): 
-    turno,excel_path = args
+def peakhourfinder(turno, excel_path): 
     slices = [
             ["HR16:HR39",0+1,"MADRUGADA"], #El +1 es para que obtenga el límite superior, p.e.: [8:00 - 8:15] -> 8:15
             ["HR40:HR63",24+1,"MAÑANA"],
@@ -29,16 +28,15 @@ def peakhourfinder(args):
     if maximum[0] !=0: #Acá obtengo el hora inicio. p.e.: 9*4 a 10*4 (9-10) o 9.25 a 10.25 (9:15 - 10:15)
         plus = slices[turno][1]
         peakhour = maximum_cell + plus
-        hora_final, hora_inicio = peakhour,peakhour-4
+        hora_inicio = peakhour-4
         hours = int(peakhour//4)
         minutes = int(((peakhour/4)%1)*100*0.15/0.25)
         #print(f"Excel: {excel_path}")
         print(f"PEAK HOUR {slices[turno][2]}: {hours-1:02d}:{minutes:02d} - {hours:02d}:{minutes:02d} | Volumen = {maximum[0]}")
     else:
         print(f"PEAK HOUR {slices[turno][2]}: NO HAY DATOS O EL FLUJO ES NULO")
-        pass
     
-    return hora_inicio,hora_final, maximum
+    return hora_inicio, maximum[0]
 
 def read_one_excel(excel_path,num_veh_classes,interval):
     wb = load_workbook(excel_path,read_only=True,data_only=True)
