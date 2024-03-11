@@ -9,6 +9,7 @@ import pandas as pd
 import re
 from io import StringIO
 from tools import read_one_excel, peakhourfinder, obtener_numero_al_final
+from unidecode import unidecode
 
 def writing_campo(vissim_path, turno) -> None:
     tree = ET.parse(vissim_path)
@@ -38,7 +39,7 @@ def writing_campo(vissim_path, turno) -> None:
     for _ in range(6):
         directorio_proyecto = os.path.dirname(directorio_proyecto)
 
-    directorio_flujogramas = os.path.join(directorio_proyecto,f"7. Informacion de Campo\\{nombre_subarea}\\Vehicular\\{tipicidad}")
+    directorio_flujogramas = os.path.join(directorio_proyecto, "7. Informacion de Campo", nombre_subarea, "Vehicular", tipicidad)
 
     files = os.listdir(directorio_flujogramas)
 
@@ -54,8 +55,7 @@ def writing_campo(vissim_path, turno) -> None:
     for flujograma in flujogramas_ordered:
         flujograma = os.path.join(directorio_flujogramas,flujograma)
         excel_paths.append(flujograma)
-    start_time = time.perf_counter()
-    print("Calculando Hora Pico")
+    #start_time = time.perf_counter()
 
     # Finding Peak Hour
     resultados_peakhour = []
@@ -63,8 +63,7 @@ def writing_campo(vissim_path, turno) -> None:
     for excel_path in excel_paths:
         resultados_peakhour.append(peakhourfinder(turno, excel_path))
 
-    end_time = time.perf_counter()
-    print(f"Tiempo usado en cáculo de hora pico: {end_time-start_time:.2f} segundos")
+    #end_time = time.perf_counter()
 
     horas_puntas = []
 
@@ -82,14 +81,12 @@ def writing_campo(vissim_path, turno) -> None:
             mayor_volumen = max_volumen_moda
             peakhour = moda_hora
 
-    hours = int(peakhour//4)
-    minutes = int(((peakhour/4)%1)*100*0.15/0.25)
-    print(f'SYSTEM PEAK HOUR: {hours-1:02d}:{minutes:02d} - {hours:02d}:{minutes:02d}')
+    #hours = int(peakhour//4)
+    #minutes = int(((peakhour/4)%1)*100*0.15/0.25)
 
     #Reading Excels:
 
-    start_time = time.perf_counter()
-    print("Leyendo datos de volúmenes por cada excel")
+    #start_time = time.perf_counter()
 
     num_veh_classes = 11
     interval = slice(peakhour, peakhour+4)
@@ -97,11 +94,9 @@ def writing_campo(vissim_path, turno) -> None:
     for excel_path in excel_paths:
         data_excel.append(read_one_excel(excel_path, num_veh_classes, interval))
 
-    end_time = time.perf_counter()
-    print(f'Tiempo usado en la lectura de excels: {end_time-start_time:.2f} segundos')
+    #end_time = time.perf_counter()
 
     #Obtaining vehicle types:
-    print("Reading Vehicle Types")
     wb = load_workbook(excel_paths[0],read_only=True,data_only=True)
     ws_ma=wb['V_Ma']
     
@@ -129,7 +124,7 @@ def writing_campo(vissim_path, turno) -> None:
     wb = xw.Book(modelo)
     ws = wb.sheets['GEH']
     all_values = []
-    insercion_data_inicio = time.perf_counter()
+    #insercion_data_inicio = time.perf_counter()
 
     for i in range(len(types)):
         ws.range(vehicles_names).value = types[i]
@@ -156,17 +151,26 @@ def writing_campo(vissim_path, turno) -> None:
     wb.close()
     xw.App().quit()
 
-    insercion_data_fin = time.perf_counter()
-
-    print(f"Tiempo de escritura en excel = {insercion_data_fin-insercion_data_inicio:.2f} segundos.")
+    #insercion_data_fin = time.perf_counter()
 
 def writing_model(vissim_path) -> None:
     #---------------------------------------------#
     # Obtaining simulated data #
     #---------------------------------------------#
 
-    inicio_reading = time.perf_counter()
+    #inicio_reading = time.perf_counter()
     directorio = os.path.dirname(vissim_path)
+
+    #Extrayendo nombres de los tipos vehiculares por clases:
+    number_by_name = {}
+    tree = ET.parse(vissim_path)
+    network_tag = tree.getroot()
+
+    number_by_name = {
+        c.attrib["no"]: unidecode(c.attrib["name"]).upper()
+        for c in network_tag.findall("./vehicleClasses/vehicleClass")
+    }
+
     patron = re.compile(r'_Node Results_\d{3}.att') #Busca todos los archivos que acaban en 3 dígitos y se filtra el mayor. Aggregated data need to be activated.
 
     archivos_att = [f for f in os.listdir(directorio) if patron.search(f)]
@@ -195,7 +199,6 @@ def writing_model(vissim_path) -> None:
     #---------------------------------------------#
                 
     data = data[:-1]
-    print(data)
     data_str = '\n'.join(data)
     data_io = StringIO(data_str)
     df = pd.read_csv(data_io,delimiter=';')
@@ -208,41 +211,42 @@ def writing_model(vissim_path) -> None:
     df = df.loc[df.iloc[:,0] == 'AVG']
     df = df.reset_index(drop=True)
 
-    final_reading = time.perf_counter()
-    print(f"Tiempo de lectura de resultados = {final_reading-inicio_reading:.2f} segundos.")
+    #final_reading = time.perf_counter()
 
     #---------------------------------------------#
     # Writing results #
     #---------------------------------------------#
 
-    inicio_writing = time.perf_counter()
+    #inicio_writing = time.perf_counter()
     directorio, _ = os.path.split(vissim_path)
     modelo = os.path.join(directorio,'Reporte_GEH-R2.xlsm')
 
     wb = xw.Book(modelo)
     ws = wb.sheets['GEH']
 
-    intersection    = 'K8'
-    origin          = 'L8'
-    destiny         = 'M8'
-    vehicle_type    = ['BC8','BD8','BE8','BF8','BG8','BH8','BI8','BJ8','BK8','BL8','BM8','BN8','BO8','BP8','BQ8','BR8','BS8','BT8','BU8','BV8']
+    num_columns = df.shape[1]
 
     for index, row in df.iterrows():
-        ws.range(intersection).value = row.iloc[2]
-        ws.range(origin).value = row.iloc[3]
-        ws.range(destiny).value = row.iloc[4]
+        ws.range(8+index, 11).value = row.iloc[2]
+        ws.range(8+index, 12).value = row.iloc[3]
+        ws.range(8+index, 13).value = row.iloc[4]
 
-        intersection = intersection[0] + str(9 + index)
-        origin = origin[0] + str(9 + index)
-        destiny = destiny[0] + str(9 + index)
+    for i in range(20):
+        name_vehicle = ws.range(7, 55+i).value
+        name_vehicle = unidecode(name_vehicle).upper()
 
-        for i in range(len(row[5:])):
-            ws.range(vehicle_type[i]).value = row.iloc[i+5]
+        if name_vehicle == 'N' or len(name_vehicle) == 1:
+            break
 
-        for j in range(len(vehicle_type)):
-            vehicle_type[j] = vehicle_type[j][:2] + str(int(vehicle_type[j][2:])+1)
+        for key, value in number_by_name.items():
+            if value == name_vehicle:
+                for j in range(num_columns-5):
+                    name_column = df.columns[j+5]
+                    pattern = r"VEHS\((\d+)\)"
+                    number_class = re.search(pattern, name_column).group(1)
+                    if str(number_class) == str(key):
+                        for fila, elem in enumerate(df.iloc[:, j+5]):
+                            ws.range(8+fila, 55+i).value = elem
 
     wb.save(modelo)
-
-    final_writing = time.perf_counter()
-    print(f"Tiempo de escritura en excel = {final_writing-inicio_writing:.2f} segundos.")
+    #final_writing = time.perf_counter()

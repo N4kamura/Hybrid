@@ -31,10 +31,6 @@ def peakhourfinder(turno, excel_path):
         hora_inicio = peakhour-4
         hours = int(peakhour//4)
         minutes = int(((peakhour/4)%1)*100*0.15/0.25)
-        #print(f"Excel: {excel_path}")
-        print(f"PEAK HOUR {slices[turno][2]}: {hours-1:02d}:{minutes:02d} - {hours:02d}:{minutes:02d} | Volumen = {maximum[0]}")
-    else:
-        print(f"PEAK HOUR {slices[turno][2]}: NO HAY DATOS O EL FLUJO ES NULO")
     
     return hora_inicio, maximum[0]
 
@@ -114,7 +110,6 @@ def read_one_excel(excel_path,num_veh_classes,interval):
             codigo = coincidence2.group(1)
         else:
             codigo = "ERROR"
-            print(f"El siguiente excel no cuenta con código:\n{name_excel}")
 
         final_result.append([codigo, list_od, list_sumas])
     
