@@ -4,3 +4,5 @@ hybrid/
 hyb-env/
 hybrid.spec
 images/
+__pycache__/
+test.py

@@ -477,6 +477,25 @@ class MiVentana(QMainWindow):
         workbook.close()
         self.ui.enviado.setText("PÁRAMETROS OK!")
 
+    def data_model(self):
+        self.version10 = self.ui.checkBox.isChecked()
+        self.version24 = self.ui.checkBox_2.isChecked()
+        try:
+            if self.version10:
+                vissim = com.Dispatch('Vissim.Vissim.10')
+            elif self.version24:
+                vissim = com.Dispatch('Vissim.Vissim.24')
+            else:
+                error_message = QErrorMessage(self)
+                return error_message.showMessage("Escoger una versión de vissim primero")
+        except Exception as inst:
+            error_message = QErrorMessage(self)
+            return error_message.showMessage("No se pudo conectar al COM")
+        
+        
+
+
+
 def main():
     app = QApplication([])
     window = MiVentana()
