@@ -491,10 +491,6 @@ class MiVentana(QMainWindow):
         except Exception as inst:
             error_message = QErrorMessage(self)
             return error_message.showMessage("No se pudo conectar al COM")
-        
-        
-
-
 
 def main():
     app = QApplication([])

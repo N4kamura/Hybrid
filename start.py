@@ -21,6 +21,8 @@ def get_results(vissim_file, vissim_version, num_runs, sim_res, num_cores) -> js
         no = vehicleClass.attrib["no"]
         veh_class_no.append(no)
 
+    no_nodes = len(network_tag.findall("./nodes/node"))
+
     vissim = com.Dispatch(f"Vissim.Vissim.{vissim_version}")
     
     try:
@@ -61,9 +63,23 @@ def get_results(vissim_file, vissim_version, num_runs, sim_res, num_cores) -> js
             dtype=float)
     )
 
-    table = {"nodes_totres": tuple(map(tuple, node_totres))}
+    movements = []
+    for no in range(1, no_nodes+1):
+        node_totres = np.nan_to_num(
+            np.array(vissim.Net.Nodes.ItemByKey(no).Movements.GetMultipleAttributes(
+                [attr for attr in NODES_TOTRES]),
+                dtype=int)
+        )
+        A = vissim.Net.Nodes.ItemByKey(no).Movements.GetMultipleAttributes(["FROMLINK\ORIGEN"])
+        B = vissim.Net.Nodes.ItemByKey(no).Movements.GetMultipleAttributes(["TOLINK\DESTINO"])
+        movements.append((A,B))
 
-    print(table)
+    table = {
+        "nodes_totres": tuple(map(tuple, node_totres)),
+        "movements": movements,
+        }
+    
+    #El nodes_totres es el average, solo que es por nodos, consideralo.
 
 if __name__ == '__main__':
     vissim_path = r"C:\Users\dacan\Downloads\basic_layout.inpx"
