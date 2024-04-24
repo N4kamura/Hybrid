@@ -9,6 +9,8 @@ import warnings
 from writing import writing_campo, writing_model
 from openpyxl import load_workbook
 from hybrid_ui import Ui_MainWindow
+from model import *
+import xlwings as xw
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 nombres_vehiculos = []
@@ -88,7 +90,7 @@ class MiVentana(QMainWindow):
             error_message = QErrorMessage(self)
             error_message.showMessage(str(e))
 
-    def reporte(self): #Ready
+    def reporte(self): #Changing
         try:
             writing_model(self.path_file)
         except Exception as e:
@@ -492,9 +494,40 @@ class MiVentana(QMainWindow):
             error_message = QErrorMessage(self)
             return error_message.showMessage("No se pudo conectar al COM")
         
-        
+        #Computing veh_classes evaluation:
+        inpx_path = os.path.join(self.path_file, self.inpx_name)
+        veh_classes_dict, number_vehClasses, nodes_dict = get_veh_classes(inpx_path) #Enviar QErrorMessage Object
 
+        #Open excel
+        modelo = os.path.join(self.path_file, 'Reporte_GEH-R2.xlsm')
+        wb = xw.Book(modelo)
+        ws = wb.sheets['GEH']
 
+        #Writing data to excel
+        nro_row = 8
+        for number_node, node_code in nodes_dict.items():
+            try:
+                NODE_RES, ORIGIN, DESTINY = get_results(vissim, number_vehClasses, number_node)
+            except Exception as inst:
+                error_message = QErrorMessage(self)
+                return error_message.showMessage(str(inst))
+            
+            try:
+                count_row = writing_excel(
+                    NODES_RES = NODE_RES,
+                    ORIGIN = ORIGIN,
+                    DESTINY = DESTINY,
+                    CODE = node_code,
+                    veh_classes = veh_classes_dict,
+                    ws = ws,
+                    nro_row = nro_row,
+                )
+            except Exception as inst:
+                error_message = QErrorMessage(self)
+                return error_message.showMessage(str(inst))
+            nro_row += count_row + 1 #Para que inicie en al siguiente linea :D
+        wb.save(modelo)
+        #Add QInfoMessage :D
 
 def main():
     app = QApplication([])
