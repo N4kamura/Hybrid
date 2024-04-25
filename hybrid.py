@@ -1,12 +1,12 @@
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QButtonGroup, QErrorMessage
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QButtonGroup, QErrorMessage, QMessageBox
 from PyQt5.QtGui import QPixmap
 import win32com.client as com
 import os
 from openpyxl import load_workbook
 import shutil
 import warnings
-from writing import writing_campo, writing_model
+from writing import writing_campo
 from openpyxl import load_workbook
 from hybrid_ui import Ui_MainWindow
 from model import *
@@ -37,7 +37,7 @@ class MiVentana(QMainWindow):
 
         self.ui.start.clicked.connect(self.ejecutar_programa)
         self.ui.carpet.clicked.connect(self.carpeta)
-        self.ui.report.clicked.connect(self.reporte)
+        self.ui.report.clicked.connect(self.data_model)
         self.ui.activar.clicked.connect(self.data_campo)
         self.ui.liviano.clicked.connect(self.livianos)
         self.ui.menor.clicked.connect(self.menores)
@@ -46,6 +46,7 @@ class MiVentana(QMainWindow):
         self.ui.fijar.clicked.connect(self.fijars)
         self.ui.exportar.clicked.connect(self.export_params_2_excel)
         self.ui.get_pushButton.clicked.connect(self.get)
+        self.ui.run.clicked.connect(self.run_vissim)
         
         #BOTONES PARA LOS TURNOS
         button_group = QButtonGroup(self)
@@ -89,15 +90,6 @@ class MiVentana(QMainWindow):
         except Exception as e:
             error_message = QErrorMessage(self)
             error_message.showMessage(str(e))
-
-    def reporte(self): #Changing
-        try:
-            writing_model(self.path_file)
-        except Exception as e:
-            error_message = QErrorMessage(self)
-            error_message.showMessage(str(e))
-
-        self.ui.enviado.setText("Escritura de vissim terminada.")
         
     def livianos(self): #Ready
         guide_path = "./images/Parametros_Guia.xlsx"
@@ -479,6 +471,38 @@ class MiVentana(QMainWindow):
         workbook.close()
         self.ui.enviado.setText("PÁRAMETROS OK!")
 
+    def run_vissim(self):
+        numruns = self.ui.spinBox.value()
+        simres = self.ui.spinBox_2.value()
+        numcores = self.ui.spinBox_3.value()
+
+        self.version10 = self.ui.checkBox.isChecked()
+        self.version24 = self.ui.checkBox_2.isChecked()
+        try:
+            if self.version10:
+                vissim = com.Dispatch('Vissim.Vissim.10')
+            elif self.version24:
+                vissim = com.Dispatch('Vissim.Vissim.24')
+            else:
+                error_message = QErrorMessage(self)
+                return error_message.showMessage("Escoger una versión de vissim primero")
+        except Exception as inst:
+            error_message = QErrorMessage(self)
+            return error_message.showMessage("No se pudo conectar al COM")
+        
+        vissim.Simulation.SetAttValue("NumRuns", numruns)
+        vissim.Simulation.SetAttValue("SimRes", simres)
+        vissim.Simulation.SetAttValue("NumCores", numcores)
+        vissim.Simulation.SetAttValue("SimPeriod", 5400)
+        vissim.Evaluation.SetAttValue("NodeResCollectData", True)
+        vissim.Evaluation.SetAttValue("NodeResToTime", 5400)
+        vissim.Evaluation.SetAttValue("NodeResFromTime", 1800)
+        vissim.Evaluation.SetAttValue("NodeResInterval", 3600)
+        vissim.Evaluation.SetAttValue("VehNetPerfCollectData", False)
+        vissim.Evaluation.SetAttValue("PedNetPerfCollectData", False)
+        vissim.Graphics.SetAttValue("QuickMode", True)
+        vissim.Simulation.RunContinuous()
+
     def data_model(self):
         self.version10 = self.ui.checkBox.isChecked()
         self.version24 = self.ui.checkBox_2.isChecked()
@@ -495,39 +519,53 @@ class MiVentana(QMainWindow):
             return error_message.showMessage("No se pudo conectar al COM")
         
         #Computing veh_classes evaluation:
-        inpx_path = os.path.join(self.path_file, self.inpx_name)
-        veh_classes_dict, number_vehClasses, nodes_dict = get_veh_classes(inpx_path) #Enviar QErrorMessage Object
+        try:
+            inpx_path = self.path_file
+        except Exception as inst:
+            error_message = QErrorMessage(self)
+            return error_message.showMessage("Selecciona primero la ubicacion del archivo .inpx")
+        
+        veh_classes_dict, number_vehClasses, nodes_dict, vehClasses_evaluation = get_veh_classes(inpx_path) #Enviar QErrorMessage Object
 
         #Open excel
-        modelo = os.path.join(self.path_file, 'Reporte_GEH-R2.xlsm')
+        directory = os.path.dirname(self.path_file)
+        modelo = os.path.join(directory, 'Reporte_GEH-R2.xlsm')
         wb = xw.Book(modelo)
         ws = wb.sheets['GEH']
 
         #Writing data to excel
         nro_row = 8
+        total_veh_not_considered = []
         for number_node, node_code in nodes_dict.items():
             try:
                 NODE_RES, ORIGIN, DESTINY = get_results(vissim, number_vehClasses, number_node)
             except Exception as inst:
                 error_message = QErrorMessage(self)
                 return error_message.showMessage(str(inst))
-            
             try:
-                count_row = writing_excel(
-                    NODES_RES = NODE_RES,
+                count_row, veh_not_considered = writing_excel(
+                    NODE_RES = NODE_RES,
                     ORIGIN = ORIGIN,
                     DESTINY = DESTINY,
                     CODE = node_code,
                     veh_classes = veh_classes_dict,
                     ws = ws,
                     nro_row = nro_row,
+                    vehClasses_evaluation = vehClasses_evaluation,
                 )
             except Exception as inst:
                 error_message = QErrorMessage(self)
                 return error_message.showMessage(str(inst))
             nro_row += count_row + 1 #Para que inicie en al siguiente linea :D
+            total_veh_not_considered.extend(veh_not_considered)
         wb.save(modelo)
-        #Add QInfoMessage :D
+
+        total_veh_not_considered = list(set(total_veh_not_considered))
+        message_box = QMessageBox()
+        message_box.setIcon(QMessageBox.Warning)
+        message_box.setWindowTitle("Warning")
+        message_box.setText(f"Not considered vehicles: {total_veh_not_considered}")
+        return message_box.exec_()
 
 def main():
     app = QApplication([])
