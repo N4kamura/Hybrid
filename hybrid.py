@@ -90,6 +90,69 @@ class MiVentana(QMainWindow):
         except Exception as e:
             error_message = QErrorMessage(self)
             error_message.showMessage(str(e))
+
+    def data_model(self):
+        self.version10 = self.ui.checkBox.isChecked()
+        self.version24 = self.ui.checkBox_2.isChecked()
+        try:
+            if self.version10:
+                vissim = com.Dispatch('Vissim.Vissim.10')
+            elif self.version24:
+                vissim = com.Dispatch('Vissim.Vissim.24')
+            else:
+                error_message = QErrorMessage(self)
+                return error_message.showMessage("Escoger una versión de vissim primero")
+        except Exception as inst:
+            error_message = QErrorMessage(self)
+            return error_message.showMessage("No se pudo conectar al COM")
+        
+        #Computing veh_classes evaluation:
+        try:
+            inpx_path = self.path_file
+        except Exception as inst:
+            error_message = QErrorMessage(self)
+            return error_message.showMessage("Selecciona primero la ubicacion del archivo .inpx")
+        
+        veh_classes_dict, number_vehClasses, nodes_dict = get_veh_classes(inpx_path) #Enviar QErrorMessage Object
+
+        #Open excel
+        directory = os.path.dirname(self.path_file)
+        modelo = os.path.join(directory, 'Reporte_GEH-R2.xlsm')
+        wb = xw.Book(modelo)
+        ws = wb.sheets['GEH']
+
+        #Writing data to excel
+        nro_row = 8
+        total_veh_not_considered = []
+        for number_node, node_code in nodes_dict.items():
+            try:
+                NODE_RES, ORIGIN, DESTINY = get_results(vissim, number_vehClasses, number_node)
+            except Exception as inst:
+                error_message = QErrorMessage(self)
+                return error_message.showMessage(str(inst))
+            try:
+                count_row, veh_not_considered = writing_excel(
+                    NODE_RES = NODE_RES,
+                    ORIGIN = ORIGIN,
+                    DESTINY = DESTINY,
+                    CODE = node_code,
+                    veh_classes = veh_classes_dict,
+                    ws = ws,
+                    nro_row = nro_row,
+                )
+            except Exception as inst:
+                error_message = QErrorMessage(self)
+                return error_message.showMessage(str(inst))
+            nro_row += count_row + 1 #Para que inicie en al siguiente linea :D
+            total_veh_not_considered.extend(veh_not_considered)
+        wb.save(modelo)
+
+        total_veh_not_considered = list(set(total_veh_not_considered))
+        message_box = QMessageBox()
+        message_box.setIcon(QMessageBox.Warning)
+        message_box.setWindowTitle("Warning")
+        message_box.setText(f"Not considered vehicles: {total_veh_not_considered}")
+        return message_box.exec_()
         
     def livianos(self): #Ready
         guide_path = "./images/Parametros_Guia.xlsx"
@@ -502,70 +565,6 @@ class MiVentana(QMainWindow):
         vissim.Evaluation.SetAttValue("PedNetPerfCollectData", False)
         vissim.Graphics.SetAttValue("QuickMode", True)
         vissim.Simulation.RunContinuous()
-
-    def data_model(self):
-        self.version10 = self.ui.checkBox.isChecked()
-        self.version24 = self.ui.checkBox_2.isChecked()
-        try:
-            if self.version10:
-                vissim = com.Dispatch('Vissim.Vissim.10')
-            elif self.version24:
-                vissim = com.Dispatch('Vissim.Vissim.24')
-            else:
-                error_message = QErrorMessage(self)
-                return error_message.showMessage("Escoger una versión de vissim primero")
-        except Exception as inst:
-            error_message = QErrorMessage(self)
-            return error_message.showMessage("No se pudo conectar al COM")
-        
-        #Computing veh_classes evaluation:
-        try:
-            inpx_path = self.path_file
-        except Exception as inst:
-            error_message = QErrorMessage(self)
-            return error_message.showMessage("Selecciona primero la ubicacion del archivo .inpx")
-        
-        veh_classes_dict, number_vehClasses, nodes_dict, vehClasses_evaluation = get_veh_classes(inpx_path) #Enviar QErrorMessage Object
-
-        #Open excel
-        directory = os.path.dirname(self.path_file)
-        modelo = os.path.join(directory, 'Reporte_GEH-R2.xlsm')
-        wb = xw.Book(modelo)
-        ws = wb.sheets['GEH']
-
-        #Writing data to excel
-        nro_row = 8
-        total_veh_not_considered = []
-        for number_node, node_code in nodes_dict.items():
-            try:
-                NODE_RES, ORIGIN, DESTINY = get_results(vissim, number_vehClasses, number_node)
-            except Exception as inst:
-                error_message = QErrorMessage(self)
-                return error_message.showMessage(str(inst))
-            try:
-                count_row, veh_not_considered = writing_excel(
-                    NODE_RES = NODE_RES,
-                    ORIGIN = ORIGIN,
-                    DESTINY = DESTINY,
-                    CODE = node_code,
-                    veh_classes = veh_classes_dict,
-                    ws = ws,
-                    nro_row = nro_row,
-                    vehClasses_evaluation = vehClasses_evaluation,
-                )
-            except Exception as inst:
-                error_message = QErrorMessage(self)
-                return error_message.showMessage(str(inst))
-            nro_row += count_row + 1 #Para que inicie en al siguiente linea :D
-            total_veh_not_considered.extend(veh_not_considered)
-        wb.save(modelo)
-
-        total_veh_not_considered = list(set(total_veh_not_considered))
-        message_box = QMessageBox()
-        message_box.setIcon(QMessageBox.Warning)
-        message_box.setWindowTitle("Warning")
-        message_box.setText(f"Not considered vehicles: {total_veh_not_considered}")
-        return message_box.exec_()
 
 def main():
     app = QApplication([])

@@ -40,7 +40,7 @@ def get_veh_classes(
 
     no_vehClasses = len(vehClasses_evaluation)
 
-    return veh_classes, no_vehClasses, nodes_dict, vehClasses_evaluation
+    return veh_classes, no_vehClasses, nodes_dict
 
 def get_results( 
         Vissim: com.Dispatch, #Vissim object
@@ -68,7 +68,6 @@ def writing_excel(
         veh_classes: dict, #dictionary with no & name of vehicle classes
         ws: tuple, #Path of the vissim file
         nro_row: int, #Row number
-        vehClasses_evaluation: list, #List of vehicle classes used
         ) -> int:
 
     od_row = nro_row
