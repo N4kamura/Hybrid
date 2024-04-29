@@ -122,12 +122,20 @@ class Ui_MainWindow(object):
         self.AccDecelTrail.setObjectName("AccDecelTrail")
         self.carpet = QtWidgets.QPushButton(self.centralwidget)
         self.carpet.setGeometry(QtCore.QRect(580, 440, 93, 41))
+        self.carpet.setStyleSheet("QPushButton {\n"
+"    background-color: #55ffff;\n"
+"}\n"
+"")
         self.carpet.setObjectName("carpet")
         self.report = QtWidgets.QPushButton(self.centralwidget)
         self.report.setGeometry(QtCore.QRect(690, 600, 93, 41))
         font = QtGui.QFont()
         font.setKerning(True)
         self.report.setFont(font)
+        self.report.setStyleSheet("QPushButton {\n"
+"    background-color: #55ffff;\n"
+"}\n"
+"")
         self.report.setAutoRepeat(False)
         self.report.setAutoExclusive(False)
         self.report.setAutoDefault(False)
@@ -137,6 +145,10 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setKerning(True)
         self.activar.setFont(font)
+        self.activar.setStyleSheet("QPushButton {\n"
+"    background-color: #55ffff;\n"
+"}\n"
+"")
         self.activar.setAutoRepeat(False)
         self.activar.setAutoExclusive(False)
         self.activar.setAutoDefault(False)
@@ -204,6 +216,10 @@ class Ui_MainWindow(object):
         self.fijar.setObjectName("fijar")
         self.exportar = QtWidgets.QPushButton(self.centralwidget)
         self.exportar.setGeometry(QtCore.QRect(690, 320, 111, 41))
+        self.exportar.setStyleSheet("QPushButton {\n"
+"    background-color: #55ffff;\n"
+"}\n"
+"")
         self.exportar.setObjectName("exportar")
         self.label_9 = QtWidgets.QLabel(self.centralwidget)
         self.label_9.setGeometry(QtCore.QRect(580, 420, 91, 21))

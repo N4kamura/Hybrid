@@ -83,7 +83,6 @@ def writing_excel(
 
     veh_comp_excel = [elem for elem in ws.range('H8:H27').value][:index]
     
-    count_row = nro_row
     veh_not_considered = []
 
     for key, value in veh_classes.items():
@@ -91,11 +90,11 @@ def writing_excel(
         for i in range(len(veh_comp_excel)):
             if value == veh_comp_excel[i]: #Encontro que de los totales del vissim hay uno en el excel
                 for index,row in enumerate(NODE_RES[:-1]):
-                    ws.range(count_row+index, 55+i).value = row[key-1]
+                    ws.range(nro_row+index, 55+i).value = row[key-1]
                 check = False
                 break
         if check:
             veh_not_considered.append(value)
-    count_row += 1
+    count_row = len(NODE_RES[:-1])
         
     return count_row, veh_not_considered
