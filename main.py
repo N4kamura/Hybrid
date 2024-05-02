@@ -350,6 +350,7 @@ class MiVentana(QMainWindow):
             error_message = QErrorMessage(self)
             return error_message.showMessage("No se pudo conectar al COM")
         
+
         """ try:
             vissim.LoadLayout("./images/layout.layx")
         except com_error as inst:

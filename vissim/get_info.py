@@ -140,7 +140,7 @@ def extractor_24(v):
     return data
 
 def from_ui_24(ui):
-    data = vissimInfo(
+    data = vissimInfo24(
         vehicleType         = ui.vehicle_type.text(),
         LookAheadDistMin    = ui.LookAheadDistMin.text(),
         LookAheadDistMax    = ui.LookAheadDistMax.text(),
@@ -175,7 +175,7 @@ def from_ui_24(ui):
     return data
 
 def from_ui_10(ui):
-    data = vissimInfo(
+    data = vissimInfo10(
         vehicleType         = ui.vehicle_type.text(),
         LookAheadDistMin    = ui.LookAheadDistMin.text(),
         LookAheadDistMax    = ui.LookAheadDistMax.text(),
