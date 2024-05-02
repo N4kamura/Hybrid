@@ -235,12 +235,8 @@ class MiVentana(QMainWindow):
             to_24(behavior, DATA)
         elif version == 10:
             to_10(behavior, DATA)
-        
-        message_box = QMessageBox()
-        message_box.setIcon(QMessageBox.Information)
-        message_box.setWindowTitle("INFO")
-        message_box.setText(f"¡Enviado exitosamente!")
-        return message_box.exec_()
+
+        return self.ui.enviado(f"Enviado Nro. {key}")
 
     def fijars(self): #OK
         if self.ui.vehicle_type.text() == '':
@@ -354,11 +350,12 @@ class MiVentana(QMainWindow):
             error_message = QErrorMessage(self)
             return error_message.showMessage("No se pudo conectar al COM")
         
-        # try:
-        #     vissim.LoadLayout("./images/layout.layx")
-        # except com_error as inst:
-        #     error_message = QErrorMessage(self)
-        #     return error_message.showMessage("No se pudo cargar el archivo de la red, revisar si lo tienes en la carpeta images/layout.layx")
+
+        """ try:
+            vissim.LoadLayout("./images/layout.layx")
+        except com_error as inst:
+            error_message = QErrorMessage(self)
+            return error_message.showMessage("No se pudo cargar el archivo de la red, revisar si lo tienes en la carpeta images/layout.layx") """
         
         vissim.Simulation.SetAttValue("NumRuns", numruns)
         vissim.Simulation.SetAttValue("SimRes", simres)
