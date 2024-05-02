@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 @dataclass
-class vissimInfo:
+class vissimInfo24:
     vehicleType: str
     #Following
     LookAheadDistMin: str
@@ -38,7 +38,40 @@ class vissimInfo:
     Zipper: str
     ZipperMinSpeed: str
 
-from dataclasses import dataclass
+@dataclass
+class vissimInfo10:
+    vehicleType: str
+    #Following
+    LookAheadDistMin: str
+    LookAheadDistMax: str
+    LookBackDistMin: str
+    LookBackDistMax: str
+    #W74
+    W74ax: str
+    W74bxAdd: str
+    W74bxMult: str
+    #Lane change
+    MaxDecelOwn: str
+    MaxDecelTrail: str
+    DecelRedDistOwn: str
+    DecelRedDistTrail: str
+    AccDecelOwn: str
+    AccDecelTrail: str
+    DiffusTm: str
+    SafDistFactLnChg: str
+    CoopDecel: str
+    #Lateral behavior
+    MinCollTmGain: str
+    MinSpeedForLat: str
+    LatDistStandDef: str
+    LatDistDrivDef: str
+    #Position
+    DesLatPos: str
+    ObsrvAdjLn: str
+    DiamQueu: str
+    ConsNextTurn: str
+    OvtLDef: str
+    OvtRDef: str
 
 @dataclass
 class vissimData24:

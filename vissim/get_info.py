@@ -64,11 +64,12 @@ def show_info(vissim, ui, version):
         ui.OvtRDef.setChecked(False)
     else: ui.OvtRDef.setChecked(True)
 
-    if info.Zipper == 'false':
-        ui.checkBox_3.setChecked(False)
-    else:
-        ui.checkBox_3.setChecked(True)
-        ui.ZipperMinSpeed.setText(str(info.ZipperMinSpeed))
+    if ui.checkBox_2.isChecked():
+        if info.Zipper == 'false':
+            ui.checkBox_3.setChecked(False)
+        else:
+            ui.checkBox_3.setChecked(True)
+            ui.ZipperMinSpeed.setText(str(info.ZipperMinSpeed))
 
 def extractor_10(v):
     """ Extrae información de vissim 10 y lo guarda en un diccionario. """
@@ -139,7 +140,7 @@ def extractor_24(v):
     return data
 
 def from_ui_24(ui):
-    data = vissimInfo(
+    data = vissimInfo24(
         vehicleType         = ui.vehicle_type.text(),
         LookAheadDistMin    = ui.LookAheadDistMin.text(),
         LookAheadDistMax    = ui.LookAheadDistMax.text(),
@@ -174,7 +175,7 @@ def from_ui_24(ui):
     return data
 
 def from_ui_10(ui):
-    data = vissimInfo(
+    data = vissimInfo10(
         vehicleType         = ui.vehicle_type.text(),
         LookAheadDistMin    = ui.LookAheadDistMin.text(),
         LookAheadDistMax    = ui.LookAheadDistMax.text(),

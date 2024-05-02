@@ -354,11 +354,11 @@ class MiVentana(QMainWindow):
             error_message = QErrorMessage(self)
             return error_message.showMessage("No se pudo conectar al COM")
         
-        try:
-            vissim.LoadLayout("./images/layout.layx")
-        except com_error as inst:
-            error_message = QErrorMessage(self)
-            return error_message.showMessage("No se pudo cargar el archivo de la red, revisar si lo tienes en la carpeta images/layout.layx")
+        # try:
+        #     vissim.LoadLayout("./images/layout.layx")
+        # except com_error as inst:
+        #     error_message = QErrorMessage(self)
+        #     return error_message.showMessage("No se pudo cargar el archivo de la red, revisar si lo tienes en la carpeta images/layout.layx")
         
         vissim.Simulation.SetAttValue("NumRuns", numruns)
         vissim.Simulation.SetAttValue("SimRes", simres)
