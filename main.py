@@ -192,9 +192,9 @@ class MiVentana(QMainWindow):
             return error_message.showMessage("No se pudo conectar al COM")
         
         try:
-            show_info(vissim, self.ui, version)
-        except ValueError:
             error_message = QErrorMessage(self)
+            show_info(vissim, self.ui, version, error_message)
+        except ValueError:
             return error_message.showMessage("Selecciona un número de comportamiento vehicular")
 
     def ejecutar_programa(self): #OK
@@ -351,11 +351,13 @@ class MiVentana(QMainWindow):
             return error_message.showMessage("No se pudo conectar al COM")
         
 
-        """ try:
-            vissim.LoadLayout("./images/layout.layx")
+        try:
+            script_path = os.path.dirname(os.path.abspath(__file__))
+            layout_path = os.path.join(script_path,"images","layout.layx")
+            vissim.loadLayout(layout_path)
         except com_error as inst:
             error_message = QErrorMessage(self)
-            return error_message.showMessage("No se pudo cargar el archivo de la red, revisar si lo tienes en la carpeta images/layout.layx") """
+            return error_message.showMessage("No se pudo cargar el archivo de la red, revisar si lo tienes en la carpeta images/layout.layx")
         
         vissim.Simulation.SetAttValue("NumRuns", numruns)
         vissim.Simulation.SetAttValue("SimRes", simres)

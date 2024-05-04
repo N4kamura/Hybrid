@@ -1,11 +1,15 @@
 from vissim.clases import *
 
-def show_info(vissim, ui, version):
+def show_info(vissim, ui, version, error_message):
     """ Extrae información y lo muestra en la interfaz. """
 
     key = int(ui.vehicle_type.text())
 
-    v = vissim.Net.DrivingBehaviors.ItemByKey(key)
+    try:
+        v = vissim.Net.DrivingBehaviors.ItemByKey(key)
+    except Exception as e:
+        return error_message.showMessage(f"No se pudo encontrar el comportamiento vehicular: {key}")
+
     if version == 24:
         info = extractor_24(v)
     elif version == 10:
@@ -65,7 +69,7 @@ def show_info(vissim, ui, version):
     else: ui.OvtRDef.setChecked(True)
 
     if ui.checkBox_2.isChecked():
-        if info.Zipper == 'false':
+        if info.Zipper == 0:
             ui.checkBox_3.setChecked(False)
         else:
             ui.checkBox_3.setChecked(True)
