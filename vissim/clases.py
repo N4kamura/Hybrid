@@ -132,3 +132,4 @@ class vissimData10:
     ConsNextTurn: str
     OvtLDef: str
     OvtRDef: str
+    ObsrvdVehs: str
