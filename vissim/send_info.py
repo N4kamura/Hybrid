@@ -26,7 +26,8 @@ def to_24(behavior, DATA):
     behavior.SetAttValue("OvtLDef",           DATA.OvtLDef)
     behavior.SetAttValue("OvtRDef",           DATA.OvtRDef)
     behavior.SetAttValue("Zipper",            DATA.Zipper)
-    behavior.SetAttValue("ZipperMinSpeed",    DATA.ZipperMinSpeed)
+    if DATA.Zipper != "false":
+        behavior.SetAttValue("ZipperMinSpeed",    DATA.ZipperMinSpeed)
 
 def to_10(behavior, DATA):
     behavior.SetAttValue("LookAheadDistMin",  DATA.LookAheadDistMin)
@@ -55,3 +56,4 @@ def to_10(behavior, DATA):
     behavior.SetAttValue("ConsNextTurn",      DATA.ConsNextTurn)
     behavior.SetAttValue("OvtLDef",           DATA.OvtLDef)
     behavior.SetAttValue("OvtRDef",           DATA.OvtRDef)
+    behavior.SetAttValue("ObsrvdVehs",        DATA.ObsrvdVehs)

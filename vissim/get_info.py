@@ -37,6 +37,8 @@ def show_info(vissim, ui, version, error_message):
     ui.MinSpeedForLat.setText         (str(info.MinSpeedForLat))
     ui.LatDistStandDef.setText        (str(info.LatDistStandDef))
     ui.LatDistDrivDef.setText         (str(info.LatDistDrivDef))
+    if version == 10:
+        ui.ObsrvdVehs.setText             (str(info.ObsrvdVehs))
 
     DesLatPos_ui = info.DesLatPos
     if DesLatPos_ui == 'MIDDLE':
@@ -104,6 +106,7 @@ def extractor_10(v):
         ConsNextTurn =     v.AttValue('ConsNextTurn'),
         OvtLDef =          v.AttValue('OvtLDef'),
         OvtRDef =          v.AttValue('OvtRDef'),
+        ObsrvdVehs =       v.AttValue('ObsrvdVehs'),
     )
 
     return data
@@ -207,6 +210,7 @@ def from_ui_10(ui):
         ConsNextTurn        = str(ui.ConsNextTurn.isChecked()).lower(),
         OvtLDef             = str(ui.OvtLDef.isChecked()).lower(),
         OvtRDef             = str(ui.OvtRDef.isChecked()).lower(),
+        ObsrvdVehs          = ui.ObsrvdVehs.text(),
     )
 
     return data

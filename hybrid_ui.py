@@ -368,6 +368,9 @@ class Ui_MainWindow(object):
         self.spinBox_3.setMaximum(64)
         self.spinBox_3.setProperty("value", 8)
         self.spinBox_3.setObjectName("spinBox_3")
+        self.ObsrvdVehs = QtWidgets.QLineEdit(self.centralwidget)
+        self.ObsrvdVehs.setGeometry(QtCore.QRect(490, 130, 60, 23))
+        self.ObsrvdVehs.setObjectName("ObsrvdVehs")
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -385,7 +388,7 @@ class Ui_MainWindow(object):
         self.report.setText(_translate("MainWindow", "MODELO"))
         self.activar.setText(_translate("MainWindow", "CAMPO"))
         self.label_6.setText(_translate("MainWindow", "Credits: Nakamura & Mikipe"))
-        self.label_7.setText(_translate("MainWindow", "Versión: v3.0.0"))
+        self.label_7.setText(_translate("MainWindow", "Versión: v3.1.3"))
         self.liviano.setText(_translate("MainWindow", "Liviano"))
         self.menor.setText(_translate("MainWindow", "Menor"))
         self.publico.setText(_translate("MainWindow", "Público"))

@@ -236,7 +236,7 @@ class MiVentana(QMainWindow):
         elif version == 10:
             to_10(behavior, DATA)
 
-        return self.ui.enviado(f"Enviado Nro. {key}")
+        return self.ui.enviado.setText(f"Enviado Driving Behavior Nro. {key}")
 
     def fijars(self): #OK
         if self.ui.vehicle_type.text() == '':
