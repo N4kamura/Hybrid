@@ -353,7 +353,10 @@ class MiVentana(QMainWindow):
 
         try:
             script_path = os.path.dirname(os.path.abspath(__file__))
-            layout_path = os.path.join(script_path,"images","layout.layx")
+            if self.version10:
+                layout_path = os.path.join(script_path,"images","layout_10.layx")
+            elif self.version24:
+                layout_path = os.path.join(script_path,"images","layout_24.layx")
             vissim.loadLayout(layout_path)
         except com_error as inst:
             error_message = QErrorMessage(self)
