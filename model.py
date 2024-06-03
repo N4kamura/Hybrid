@@ -55,8 +55,8 @@ def get_results(
             dtype=int)
     )
     
-    ORIGIN = Vissim.Net.Nodes.ItemByKey(no_node).Movements.GetMultipleAttributes(["FROMLINK\ORIGEN"])
-    DESTINY = Vissim.Net.Nodes.ItemByKey(no_node).Movements.GetMultipleAttributes(["TOLINK\DESTINO"])
+    ORIGIN = Vissim.Net.Nodes.ItemByKey(no_node).Movements.GetMultipleAttributes([fr"FROMLINK\ORIGEN"])
+    DESTINY = Vissim.Net.Nodes.ItemByKey(no_node).Movements.GetMultipleAttributes([fr"TOLINK\DESTINO"])
 
     return NODE_RES, ORIGIN, DESTINY
 

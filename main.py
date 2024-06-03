@@ -17,6 +17,7 @@ from guides.tools import *
 from vissim.get_info import *
 from vissim.send_info import *
 from excels.get_info import *
+import sys
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 nombres_vehiculos = [] #TODO: Implementar a futuro
@@ -338,6 +339,7 @@ class MiVentana(QMainWindow):
 
         self.version10 = self.ui.checkBox.isChecked()
         self.version24 = self.ui.checkBox_2.isChecked()
+
         try:
             if self.version10:
                 vissim = com.Dispatch('Vissim.Vissim.10')
@@ -350,14 +352,18 @@ class MiVentana(QMainWindow):
             error_message = QErrorMessage(self)
             return error_message.showMessage("No se pudo conectar al COM")
         
-
         try:
-            script_path = os.path.dirname(os.path.abspath(__file__))
+            if hasattr(sys, '_MEIPASS'):
+                script_path = sys._MEIPASS
+            else:
+                script_path = os.path.dirname(os.path.abspath(__file__))
+
             if self.version10:
                 layout_path = os.path.join(script_path,"images","layout_10.layx")
             elif self.version24:
                 layout_path = os.path.join(script_path,"images","layout_24.layx")
             vissim.loadLayout(layout_path)
+
         except com_error as inst:
             error_message = QErrorMessage(self)
             return error_message.showMessage("No se pudo cargar el archivo de la red, revisar si lo tienes en la carpeta images/layout.layx")

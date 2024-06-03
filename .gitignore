@@ -7,3 +7,4 @@ images/
 __pycache__/
 test.py
 main.spec
+contents/
